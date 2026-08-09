@@ -36,7 +36,7 @@ def agriculture_analysis_sp_data(params):
                 msg = f'Matplotlib invalid colors extensions: {wrng_col}'
                 return {'status': -1, 'message': msg}
 
-    season_data = _get_rainy_season(params)
+    season_data = get_rainy_season(params)
     if season_data['status'] == -1:
         return season_data
     rainy_season = season_data['data']
@@ -263,7 +263,7 @@ def _format_ckey_labels_dates(
 
     return map_png
 
-def _get_rainy_season(params):
+def get_rainy_season(params):
     cache_key = hash_params_rainy_season(
         params['rainy_season']
     )
@@ -380,6 +380,6 @@ def _get_default_params():
 
 def init_rainy_season():
     params = _get_default_params()
-    season_data = _get_rainy_season(params)
+    season_data = get_rainy_season(params)
     if season_data['status'] == -1:
         raise ValueError(season_data['message'])

@@ -15,7 +15,7 @@
             <select id="{{ tempRes }}-onset-start-mon" class="form-select form-select2-nosearch w-auto align-middle" style="width: 120px;"></select>
             <select id="{{ tempRes }}-onset-start-day" class="form-select form-select2-nosearch w-auto align-middle"></select>
             <span>{{ pageText.rainy_season_text.onset.search }}</span>
-            <input id="{{ tempRes }}-onset-search-day" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.onset.searchDay }}">
+            <input id="{{ tempRes }}-onset-search-day" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.onset.searchDays }}">
             <span>{{ pageText.rainy_season_text.onset.unit2 }}</span>
             <span>{{ pageText.rainy_season_text.onset.raintot }}</span>
             <input id="{{ tempRes }}-onset-rain-tot" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.onset.rainTotal }}">
@@ -41,7 +41,7 @@
             <select id="{{ tempRes }}-cessation-start-mon" class="form-select form-select2-nosearch w-auto align-middle" style="width: 120px;"></select>
             <select id="{{ tempRes }}-cessation-start-day" class="form-select form-select2-nosearch w-auto align-middle"></select>
             <span>{{ pageText.rainy_season_text.cessation.search }}</span>
-            <input id="{{ tempRes }}-cessation-search-day" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.cessation.searchDay }}">
+            <input id="{{ tempRes }}-cessation-search-day" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.cessation.searchDays }}">
             <span>{{ pageText.rainy_season_text.cessation.unit2 }}</span>
             <span>{{ pageText.rainy_season_text.cessation.waterb }}</span>
             <input id="{{ tempRes }}-cessation-water-balance" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.cessation.waterBalance }}">
@@ -62,14 +62,14 @@
             </div>
             <div class="col-auto">
                 <div class="form-check">
-                    <input id="{{ tempRes }}-rseason-rmisolatedpx" type="checkbox" class="form-check-input" {% if ( pageText.rainy_season.computation.rmisolatedpx ) %} checked {% endif %}>
+                    <input id="{{ tempRes }}-rseason-rmisolatedpx" type="checkbox" class="form-check-input" {% if ( pageText.rainy_season.computation.rmIsolatedPix ) %} checked {% endif %}>
                     <label class="form-check-label" for="{{ tempRes }}-rseason-rmisolatedpx">{{ pageText.rainy_season_text.computation.rmisolatedpx }}</label>
                 </div>
             </div>
         </div>
         <div class="mt-2">
             <span>{{ pageText.rainy_season_text.computation.minfrac }}</span>
-            <input id="{{ tempRes }}-rseason-minfrac" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.computation.minfrac }}">
+            <input id="{{ tempRes }}-rseason-minfrac" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="3" value="{{ pageText.rainy_season.computation.minFrac }}">
         </div>
     </fieldset>
 </div>

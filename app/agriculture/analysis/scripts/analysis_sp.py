@@ -1,3 +1,4 @@
+import os
 import json
 import numpy as np
 import pandas as pd
@@ -13,6 +14,8 @@ from app.scripts._cache import cache, hash_params_rainy_season
 from app.misc.scripts.soilgrids_tawc import get_gyga_af_tawc
 from app.misc.scripts.extract_data import regrid2D_dataArray
 from app.misc.scripts.rainy_season import compute_rainy_season
+from app.scripts.util import load_yaml_file
+from app.scripts._global import GLOBAL_CONFIG
 
 def agriculture_analysis_sp_data(params):
     if params['colorbar']['color_type'] == 'user':
@@ -269,7 +272,9 @@ def _get_rainy_season(params):
     if cached_data is None:
         try:
             cached_data = _compute_rainy_season(params)
-            cached_data = cached_data.compute()
+            cached_data = cached_data.compute(
+                scheduler='single-threaded'
+            )
         except Exception as e:
             return {'status': -1, 'message': str(e)}
         cache.set(cache_key, cached_data)
@@ -339,3 +344,42 @@ def _get_clim_data(
         cache.set(cache_key, cached_data)
 
     return {'status': 0, 'data': cached_data}
+
+def _get_default_params():
+    params = {'temporalRes': 'daily'}
+    app_dir = GLOBAL_CONFIG['app_dir']
+
+    file0 = os.path.join(
+        app_dir, 'agriculture', 'analysis',
+        'yaml', 'rainy-season.yaml'
+    )
+    tmp = load_yaml_file(file0)
+    params['dataset'] = tmp['dataset']['use']
+
+    file1 = os.path.join(
+        app_dir, 'yaml', 'season-definition.yaml'
+    )
+    tmp = load_yaml_file(file1)
+    tmp = tmp['rainy_season']
+    p_onset = {}
+    for k, v in tmp['onset'].items():
+        kn = k if k == 'rainThres' else f'{k}O'
+        p_onset[kn] = v
+    p_cessation = {
+        f'{k}C': v 
+        for k, v in tmp['cessation'].items()
+    }
+    p_rseas = p_onset | p_cessation
+    p_rseas = p_rseas | tmp['computation']
+    p_rseas = {
+        k: int(v) if isinstance(v, float) and v.is_integer() else v
+        for k, v in p_rseas.items()
+    }
+    params['rainy_season'] = p_rseas
+    return params
+
+def init_rainy_season():
+    params = _get_default_params()
+    season_data = _get_rainy_season(params)
+    if season_data['status'] == -1:
+        raise ValueError(season_data['message'])

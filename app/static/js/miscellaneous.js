@@ -682,7 +682,7 @@ function setRainySeasonCalendarOnset(tempRes, chartType = null) {
     setMonthsDaysCalendar(
         `${prefixID}-onset-start-mon`,
         `${prefixID}-onset-start-day`,
-        RAINY_SEASON.onset.startMon,
+        RAINY_SEASON.onset.startMonth,
         RAINY_SEASON.onset.startDay,
         true
     );
@@ -690,7 +690,7 @@ function setRainySeasonCalendarOnset(tempRes, chartType = null) {
     setMonthsDaysCalendar(
         `${prefixID}-cessation-start-mon`,
         `${prefixID}-cessation-start-day`,
-        RAINY_SEASON.cessation.startMon,
+        RAINY_SEASON.cessation.startMonth,
         RAINY_SEASON.cessation.startDay,
         false
     );

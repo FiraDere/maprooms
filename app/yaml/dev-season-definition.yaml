@@ -9,9 +9,9 @@ default_season:
         length: 3
 rainy_season:
     onset:
-        startMon: 5
+        startMonth: 5
         startDay: 1
-        searchDay: 90
+        searchDays: 90
         rainTotal: 20.
         numberDays: 5
         minNbDays: 3
@@ -19,13 +19,13 @@ rainy_season:
         drySpellDays: 21
         rainThres: 1.
     cessation:
-        startMon: 8
+        startMonth: 8
         startDay: 15
-        searchDay: 90
+        searchDays: 90
         waterBalance: 5.
         numberDays: 3
     computation:
         interpolate: False
-        minfrac: 0.75
-        rmisolatedpx: True
+        minFrac: 0.75
+        rmIsolatedPix: True
     where: [climate, agriculture]

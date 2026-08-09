@@ -571,25 +571,42 @@ function createMarkerPopup(marker, map = MAP_BE) {
     const div = $('<div>');
     const div1 = $('<div>').appendTo(div)
         .addClass('border border-secondary rounded-3 ps-2 pe-2');
-    const plon = $('<p>').appendTo(div1).addClass('m-1');
-    $('<span>').appendTo(plon)
-        .text('Longitude: ');
-    $('<span>').appendTo(plon)
-        .text($('.marker-loc-lon').val());
-    const plat = $('<p>').appendTo(div1).addClass('m-1');
-    $('<span>').appendTo(plat)
-        .text('Latitude: ');
-    $('<span>').appendTo(plat)
-        .text($('.marker-loc-lat').val());
+
+    const pLon = $('<p>').appendTo(div1)
+        .addClass('d-flex justify-content-end align-items-center gap-2 m-1');
+    $('<span>').appendTo(pLon).text('Longitude:');
+    const inputLon = $('<input>').attr({
+        type: 'text',
+        id: 'marker-loc-lon',
+        class: 'form-control form-control-sm d-inline-block w-auto',
+        value: $('.marker-loc-lon').val(),
+        size: 10
+    }).appendTo(pLon);
+
+    const pLat = $('<p>').appendTo(div1)
+        .addClass('d-flex justify-content-end align-items-center gap-2 m-1');
+    $('<span>').appendTo(pLat).text('Latitude:');
+    const inputLat = $('<input>').attr({
+        type: 'text',
+        id: 'marker-loc-lat',
+        class: 'form-control form-control-sm d-inline-block w-auto',
+        value: $('.marker-loc-lat').val(),
+        size: 10
+    }).appendTo(pLat);
 
     const div2 = $('<div>').appendTo(div)
         .addClass('d-flex align-items-center justify-content-center mt-2');
 
-    $("<button>", {
+    $('<button>', {
         type: 'button',
+        id: 'marker-loc-btn',
         class: 'btn btn-secondary btn-sm',
         text: JS_TEXT.delete_marker,
         click: () => {
+            const rlon = Number(inputLon.val());
+            $('.marker-loc-lon').val(rlon);
+            const rlat = Number(inputLat.val());
+            $('.marker-loc-lat').val(rlat);
             map.removeLayer(marker);
         }
     }).appendTo(div2);
@@ -1071,6 +1088,15 @@ function createMarkerLocation(lon, lat, callback, time_res, map) {
         if (callback !== null) {
             callback(time_res);
         }
+    });
+
+    marker.on('popupclose', function(e) {
+        const rlon = Number($('#marker-loc-lon').val());
+        $('.marker-loc-lon').val(rlon);
+        const rlat = Number($('#marker-loc-lat').val());
+        $('.marker-loc-lat').val(rlat);
+        this.setLatLng([rlat, rlon]);
+        callback(time_res);
     });
 
     callback(time_res);

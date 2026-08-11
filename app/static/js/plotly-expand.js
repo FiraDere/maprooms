@@ -2566,35 +2566,18 @@ function expand_agri_cropsuit_query(tempRes) {
     query.minFrac = 0.95;
     query.variable = 'suitability';
 
-    const parameters = [
-        ['startMonth', 'start-mon', 'start month', true],
-        ['startDay', 'start-day', 'start day', true],
-        ['endMonth', 'end-mon', 'end month', true],
-        ['endDay', 'end-day', 'end day', true],
-        ['precipLow', 'precip-low', 'lower precipitation threshold', false],
-        ['precipHigh', 'precip-high', 'upper precipitation threshold', false],
-        ['tempLow', 'temp-low', 'minimum temperature', false],
-        ['tempHigh', 'temp-high', 'maximum temperature', false],
-        ['tempOptim', 'temp-optim', 'optimal temperature range', false],
-        ['nbWetDays', 'nb-wetdays', 'minimum wet days', true],
-        ['rainThres', 'rain-thres', 'wet-day threshold', false]
-    ];
+    query.startMonth = parseInt($(`#${tempRes}-cs-ts-start-mon`).val(), 10);
+    query.startDay = parseInt($(`#${tempRes}-cs-ts-start-day`).val(), 10);
+    query.endMonth = parseInt($(`#${tempRes}-cs-ts-end-mon`).val(), 10);
+    query.endDay = parseInt($(`#${tempRes}-cs-ts-end-day`).val(), 10);
 
-    for (const [key, suffix, label, isInteger] of parameters) {
-        const rawValue = $(`#${tempRes}-cs-ts-${suffix}`).val();
-        const value = isInteger
-            ? Number.parseInt(rawValue, 10)
-            : Number(rawValue);
-
-        // JSON.stringify converts NaN to null, which becomes None in Python and
-        // subsequently raises when the analysis code calls int(None).
-        if (rawValue === null || rawValue === undefined ||
-                String(rawValue).trim() === '' || !Number.isFinite(value)) {
-            flashMessage(`Missing or invalid crop suitability ${label}.`, 'error');
-            return false;
-        }
-        query[key] = value;
-    }
+    query.precipLow = Number($(`#${tempRes}-cs-ts-precip-low`).val());
+    query.precipHigh = Number($(`#${tempRes}-cs-ts-precip-high`).val());
+    query.tempLow = Number($(`#${tempRes}-cs-ts-temp-low`).val());
+    query.tempHigh = Number($(`#${tempRes}-cs-ts-temp-high`).val());
+    query.tempOptim = Number($(`#${tempRes}-cs-ts-temp-optim`).val());
+    query.nbWetDays = parseInt($(`#${tempRes}-cs-ts-nb-wetdays`).val(), 10);
+    query.rainThres = Number($(`#${tempRes}-cs-ts-rain-thres`).val());
 
     return query;
 }
@@ -2647,8 +2630,7 @@ function expand_agri_cropsuit_display(json, container) {
                 width: 0
             }
         },
-        hovertemplate:
-            'Year: %{x}<br>%{data.name}: %{customdata:.0f}' +
+        hovertemplate: 'Year: %{x}<br>%{data.name}: %{customdata:.0f}' +
             '<extra></extra>'
     }];
 

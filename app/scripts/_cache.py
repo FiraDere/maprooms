@@ -72,3 +72,13 @@ def hash_params_ts_data(params):
 
 def hash_params_rainy_season(seas_params):
     return _hash_params(seas_params)
+
+def hash_params_ts_cropsuit(params):
+    pars_keys = [
+        'geomExtract', 'pointsSource', 'pointsList',  'dataset', 'temporalRes',
+        'variable', 'minFrac', 'startMonth', 'startDay', 'endMonth', 'endDay',
+        'precipLow', 'precipHigh', 'tempLow', 'tempHigh', 'tempOptim', 
+        'nbWetDays', 'rainThres'
+    ]
+    pars = {k: str(v) for k, v in params.items() if k in pars_keys}
+    return _hash_params(pars)

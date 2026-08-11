@@ -19,6 +19,11 @@ from .scripts.analysis_ts import (
     agriculture_analysis_ts_cropsuit
 )
 
+from app.scripts._cache import (
+    cache_data_functions,
+    hash_params_ts_cropsuit
+)
+
 agriculture_analysis = Blueprint(
     'agriculture_analysis',
     __name__,
@@ -88,7 +93,12 @@ def agriculture_analysis_anom():
 def agriculture_analysis_cropsuit():
     params = request.get_json()
     try:
-        data_cs = agriculture_analysis_ts_cropsuit(params)
-        return json.dumps(data_cs)
+        # data_cs = agriculture_analysis_ts_cropsuit(params)
+        # return json.dumps(data_cs)
+        return cache_data_functions(
+                    agriculture_analysis_ts_cropsuit,
+                    hash_params_ts_cropsuit,
+                    params
+                )
     except Exception as e:
         return json.dumps({'status': -1, 'message': str(e)})

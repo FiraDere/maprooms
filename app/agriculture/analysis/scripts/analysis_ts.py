@@ -1,9 +1,13 @@
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from app.scripts.util import pretty
 
-from app.dst_api.scripts import get_zarr_dataset
+from app.dst_api.scripts import (
+    get_zarr_dataset,
+    get_daily_index_season
+)
 from app.scripts._cache import cache, hash_params_rainy_season
 from app.misc.scripts.soilgrids_tawc import get_gyga_af_tawc
 from app.misc.scripts.rainy_season import compute_rainy_season
@@ -218,6 +222,163 @@ def agriculture_analysis_ts_anom(params):
         msg = f'All data are missing for point {mcrd}'
         return {'status': -1, 'message': msg}
 
+def agriculture_analysis_ts_cropsuit(params):
+    precip, tmax, tmin = _read_crop_suitability_ts_data(params)
+    precip, tmax, tmin = xr.align(
+        precip, tmax, tmin, join='inner'
+    )
+    if precip.sizes['time'] == 0:
+        return {
+            'status': -1,
+            'message': 'Rainfall and temperature have no common dates.'
+        }
+
+    seasons = get_daily_index_season(
+        precip['time'].values,
+        int(params['startMonth']),
+        int(params['startDay']),
+        int(params['endMonth']),
+        int(params['endDay'])
+    )
+    years = np.asarray(sorted(seasons['index']), dtype=np.int32)
+    rows = []
+    min_frac = float(params['minFrac'])
+
+    for year in years:
+        indices = seasons['index'][int(year)]
+        season_info = seasons['length'][int(year)]
+        expected_days = season_info['nb_seas']
+
+        if season_info['frac'] < min_frac:
+            score = xr.full_like(
+                precip.isel(time=0, drop=True),
+                np.nan,
+                dtype=float
+            )
+        else:
+            rain = precip.isel(time=indices)
+            tx = tmax.isel(time=indices)
+            tn = tmin.isel(time=indices)
+            valid = (
+                (rain.notnull().sum('time') / expected_days >= min_frac)
+                & (tx.notnull().sum('time') / expected_days >= min_frac)
+                & (tn.notnull().sum('time') / expected_days >= min_frac)
+            )
+
+            max_temp = (
+                tx.mean('time', skipna=True)
+                <= float(params['tempHigh'])
+            )
+            min_temp = (
+                tn.mean('time', skipna=True)
+                >= float(params['tempLow'])
+            )
+            temp_range = (
+                (tx - tn).mean('time', skipna=True)
+                <= float(params['tempOptim'])
+            )
+            wet_days = (
+                (rain >= float(params['rainThres'])).sum('time')
+                >= int(params['nbWetDays'])
+            )
+            total_precip = rain.sum('time', skipna=True)
+            precip_range = (
+                (total_precip >= float(params['precipLow']))
+                & (total_precip <= float(params['precipHigh']))
+            )
+            score = (
+                max_temp.astype(np.int8)
+                + min_temp.astype(np.int8)
+                + temp_range.astype(np.int8)
+                + precip_range.astype(np.int8)
+                + wet_days.astype(np.int8)
+            ).where(valid)
+
+        rows.append(score)
+
+    if not rows:
+        return {
+            'status': -1,
+            'message': 'No seasons are available for the selected dates.'
+        }
+
+    scores = xr.concat(
+        rows, dim=xr.IndexVariable('year', years)
+    )
+    if scores.chunks is not None:
+        scores = scores.compute(scheduler='single-threaded')
+    values = np.asarray(scores.values, dtype=float).squeeze()
+    values = np.atleast_1d(values)
+
+    point = params['pointsList'][0]
+    if np.all(np.isnan(values)):
+        msg = (
+            'All crop suitability data are missing for point '
+            f"(Longitude: {float(point['lon'])}, "
+            f"Latitude: {float(point['lat'])})"
+        )
+        return {'status': -1, 'message': msg}
+
+    output_values = np.where(np.isnan(values), None, values)
+    return {
+        'status': 0,
+        'data': {
+            'time': years.tolist(),
+            'values': output_values.tolist(),
+            'info': {
+                'geom': {
+                    'name': point['loc'],
+                    'lon': float(point['lon']),
+                    'lat': float(point['lat'])
+                },
+                'var': {
+                    'name': 'Crop climate suitability',
+                    'units': 'index',
+                    'type': 'crop_suit'
+                },
+                'time_res': params['temporalRes']
+            },
+            'yrange': [0, 5.25],
+            'yticks': list(range(6))
+        }
+    }
+
+def _read_crop_suitability_ts_data(params):
+    lon_a = [float(params['pointsList'][0]['lon'])]
+    lat_a = [float(params['pointsList'][0]['lat'])]
+    params_data = {
+        k: params[k]
+        for k in ['temporalRes', 'dataset']
+    }
+    params_precip = params_data.copy()
+    params_precip['variable'] = 'precip'
+    precip = get_zarr_dataset(params_precip)
+    precip_da = precip['precip'].sel(
+        lon=lon_a, lat=lat_a, method='nearest'
+    )
+
+    params_tmax = params_data.copy()
+    params_tmax['variable'] = 'tmax'
+    tmax = get_zarr_dataset(params_tmax)
+    tmax_da = tmax['tmax'].sel(
+        lon=lon_a, lat=lat_a, method='nearest'
+    )
+    tmax_da = tmax_da.assign_coords(
+        lon=precip_da.lon, lat=precip_da.lat
+    )
+
+    params_tmin = params_data.copy()
+    params_tmin['variable'] = 'tmin'
+    tmin = get_zarr_dataset(params_tmin)
+    tmin_da = tmin['tmin'].sel(
+        lon=lon_a, lat=lat_a, method='nearest'
+    )
+    tmin_da = tmin_da.assign_coords(
+        lon=precip_da.lon, lat=precip_da.lat
+    )
+
+    return precip_da, tmax_da, tmin_da
+
 def _get_rainy_season(params):
     p_rseas = params['rainy_season']
     p_rseas['lon'] = round(float(params['pointsList'][0]['lon']), 4)
@@ -246,16 +407,14 @@ def _compute_rainy_season(params):
     params_precip = params_data.copy()
     params_precip['variable'] = 'precip'
     precip = get_zarr_dataset(params_precip)
-    precip_da = precip['precip']
-    precip_da = precip_da.sel(
+    precip_da = precip['precip'].sel(
         lon=lon_a, lat=lat_a, method='nearest'
     )
 
     params_et0 = params_data.copy()
     params_et0['variable'] = 'et0'
     et0 = get_zarr_dataset(params_et0)
-    et0_da = et0['et0']
-    et0_da = et0_da.sel(
+    et0_da = et0['et0'].sel(
         lon=lon_a, lat=lat_a, method='nearest'
     )
     et0_da = et0_da.assign_coords(
@@ -263,8 +422,7 @@ def _compute_rainy_season(params):
     )
 
     taw = get_gyga_af_tawc('agg_erzd')
-    taw_da = taw['tawc_agg_erzd']
-    taw_da = taw_da.sel(
+    taw_da = taw['tawc_agg_erzd'].sel(
         lon=lon_a, lat=lat_a, method='nearest'
     )
     taw_da = taw_da.assign_coords(

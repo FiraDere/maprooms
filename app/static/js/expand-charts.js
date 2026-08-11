@@ -761,3 +761,56 @@ function setRainySeasonExpandModal(tempRes, chartType, contID) {
             downloadPlotlyImageJPG(contChart);
         });
 }
+
+function setCropSuitabilityExpandModal(tempRes, contID) {
+    showModalDialog(`modal-expand-${contID}`);
+    expandModalCharts(
+        contID,
+        expand_agri_cropsuit_charts,
+        tempRes
+    );
+    purgePlotlyChartExpandModal(contID);
+
+    const prefix = `${tempRes}-cs-ts`;
+    $(`#${prefix}-start-mon, #${prefix}-start-day, ` +
+        `#${prefix}-end-mon, #${prefix}-end-day`).empty();
+    setAnalysisDateCalendarMonDay(tempRes, 'cs-ts');
+
+    const copySeasonDate = (part) => {
+        const source = `${tempRes}-cs-${part}`;
+        const target = `${prefix}-${part}`;
+        $(`#${target}`).val($(`#${source}`).val()).trigger('change');
+    };
+    copySeasonDate('start-mon');
+    copySeasonDate('start-day');
+    copySeasonDate('end-mon');
+    copySeasonDate('end-day');
+
+    const parameterNames = [
+        'precip-low', 'precip-high',
+        'temp-low', 'temp-high', 'temp-optim',
+        'nb-wetdays', 'rain-thres'
+    ];
+    for (const name of parameterNames) {
+        $(`#${prefix}-${name}`).val($(`#${tempRes}-cs-${name}`).val());
+    }
+
+    const contChart = `container-chart-${contID}`;
+    $(`#${tempRes}-cropsuit-control`).find('select, input')
+        .off('change.chartCropSuit')
+        .on('change.chartCropSuit', function() {
+            expand_agri_cropsuit_charts(contChart, tempRes);
+        });
+
+    $(`#plotly-replot-${contID}`)
+        .off('click.chartCropSuit')
+        .on('click.chartCropSuit', function() {
+            expand_agri_cropsuit_charts(contChart, tempRes);
+        });
+
+    $(`#plotly-download-${contID}`)
+        .off('click.chartCropSuit')
+        .on('click.chartCropSuit', function() {
+            downloadPlotlyImageJPG(contChart);
+        });
+}

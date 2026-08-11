@@ -2,7 +2,8 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from datetime import date
+import xarray as xr
+from datetime import date, datetime
 
 from app.dst_api.scripts import (
     get_zarr_dataset,
@@ -16,6 +17,11 @@ from app.misc.scripts.extract_data import regrid2D_dataArray
 from app.misc.scripts.rainy_season import compute_rainy_season
 from app.scripts.util import load_yaml_file
 from app.scripts._global import GLOBAL_CONFIG
+from app.dst_api.scripts import (
+    download_analysis_dailydata,
+    get_daily_index_season,
+    year_daily_index_season
+)
 
 def agriculture_analysis_sp_data(params):
     if params['colorbar']['color_type'] == 'user':
@@ -36,6 +42,51 @@ def agriculture_analysis_sp_data(params):
                 msg = f'Matplotlib invalid colors extensions: {wrng_col}'
                 return {'status': -1, 'message': msg}
 
+    if params['mapPage'] in ['rainy-season', 'decision-support']:
+        ret = _get_rainy_season_data(params)
+        if ret['status'] == -1:
+            return ret
+        data, rainy_season, params = ret['data']
+    elif params['mapPage'] == 'crops-suitability':
+        ret = _get_crop_suitability_data(params)
+        if ret['status'] == -1:
+            return ret
+        data = ret['data']
+    else:
+        return {'status': -1, 'message': 'Unknown maproom page.'}
+
+    if params['colorbar']['color_type'] == 'preset':
+        map_png = create_imagePng(
+            data,
+            breaks=params['colorbar']['break_cbar'],
+            color_name=params['colorbar']['color_cbar'],
+            colors_ext=params['colorbar']['color_ext']
+        )
+    else:
+        map_png = create_imagePng(
+            data,
+            breaks=params['colorbar']['break_cbar'],
+            colors=params['colorbar']['color_cbar'],
+            colors_ext=params['colorbar']['color_ext']
+        )
+
+    if params['mapPage'] in ['rainy-season', 'decision-support']:
+        map_png = _format_ckey_labels_dates(
+            map_png, rainy_season, params
+        )
+        if params['mapType'] == 'climatology':
+            map_png['date'] = ''
+        else:
+            map_png['date'] = f"{params['Year']} season"
+
+        map_png['ckeys']['title'] = _get_ckey_title(params)
+    else:
+        map_png['date'] = data['date']
+        map_png['ckeys']['title'] = f"{data['longname']} ({data['units']})"
+
+    return {'status': 0, 'data': map_png}
+
+def _get_rainy_season_data(params):
     season_data = get_rainy_season(params)
     if season_data['status'] == -1:
         return season_data
@@ -65,10 +116,17 @@ def agriculture_analysis_sp_data(params):
             'data': clim_data['data'].values
         }
     else:
-        data_year = (
-            rainy_season[params['variable']]
-            .sel(year=params['Year'])
-        )
+        if params['mapPage'] == 'decision-support':
+            data_year = (
+                rainy_season[params['variable']]
+                .isel(year=-1)
+            )
+            params['Year'] = data_year.year.values.item()
+        else:
+            data_year = (
+                rainy_season[params['variable']]
+                .sel(year=params['Year'])
+            )
 
         if params['mapType'] == 'anomaly':
             clim_data = _get_clim_data(
@@ -86,36 +144,102 @@ def agriculture_analysis_sp_data(params):
             'lat': data_year['lat'].values,
             'data': data_year.values
         }
-
     params = _format_ckey_labels_num(rainy_season, params)
+    return {
+        'status': 0,
+        'data': (data, rainy_season, params)
+    }
 
-    if params['colorbar']['color_type'] == 'preset':
-        map_png = create_imagePng(
-            data,
-            breaks=params['colorbar']['break_cbar'],
-            color_name=params['colorbar']['color_cbar'],
-            colors_ext=params['colorbar']['color_ext']
+def _get_crop_suitability_data(params):
+    if params['mvariable'] == 'suitability':
+        suitability_data = _compute_crop_suitability(params)
+        if suitability_data['status'] == -1:
+            return suitability_data
+
+        crop_suit = suitability_data['data']['crop_suit']
+        if crop_suit.chunks is not None:
+            crop_suit = crop_suit.compute(
+                scheduler='single-threaded'
+            )
+
+        start = datetime(
+            params['Year'], params['startMonth'], params['startDay']
         )
-    else:
-        map_png = create_imagePng(
-            data,
-            breaks=params['colorbar']['break_cbar'],
-            colors=params['colorbar']['color_cbar'],
-            colors_ext=params['colorbar']['color_ext']
+        end_year = params['Year']
+        if (
+            params['endMonth'], params['endDay']
+        ) < (
+            params['startMonth'], params['startDay']
+        ):
+            end_year += 1
+        end = datetime(
+            end_year, params['endMonth'], params['endDay']
         )
 
-    map_png = _format_ckey_labels_dates(
-        map_png, rainy_season, params
-    )
-
-    if params['mapType'] == 'climatology':
-        map_png['date'] = ''
+        return {
+            'status': 0,
+            'data': {
+                'date': (
+                    f"{start.strftime('%Y-%m-%d')} - "
+                    f"{end.strftime('%Y-%m-%d')}"
+                ),
+                'lon': crop_suit['lon'].values,
+                'lat': crop_suit['lat'].values,
+                'data': crop_suit.values,
+                'longname': 'Crop climate suitability',
+                'units': 'index',
+                'varid': 'crop_suit',
+                'dimensions': crop_suit.dims
+            }
+        }
     else:
-        map_png['date'] = f"{params['Year']} season"
+        params = _create_params_dailyanalysis(params)
+        json_data = download_analysis_dailydata(params)
+        data = _parse_json_spatial_data(json_data, 'Date')
+        return {'status': 0, 'data': data}
 
-    map_png['ckeys']['title'] = _get_ckey_title(params)
+def _create_params_dailyanalysis(params):
+    if params['mvariable'] == 'rainfall':
+        params['variable'] = 'rainfall'
+        params['seasParams'] = 'TotRain'
+    if params['mvariable'] == 'tempMax':
+        params['variable'] = 'temperature'
+        params['seasParams'] = 'MaxTemp'
+    if params['mvariable'] == 'tempMin':
+        params['variable'] = 'temperature'
+        params['seasParams'] = 'MinTemp'
 
-    return {'status': 0, 'data': map_png}
+    params['minFrac'] = 0.95
+
+    pars = {
+        'geomExtract': 'original',
+        'outFormat': 'JSON-Format',
+        'gridded': True,
+        'webApp': True,
+        'finalOutput': True,
+        'httpMethod': 'POST'
+    }
+    return pars | params
+
+def _parse_json_spatial_data(json_data, date_key):
+    jsd = json.loads(json_data)
+    if jsd['status'] == -1: return jsd
+    jsd = json.loads(jsd['data'])
+    lat = np.array(jsd['Latitude'])
+    lon = np.array(jsd['Longitude'])
+    data = np.array(jsd['Data'])
+    data = np.where(data == jsd['Missing'], np.nan, data)
+    return {
+            'status': 0,
+            'date': jsd[date_key],
+            'lon': lon,
+            'lat': lat,
+            'data': data,
+            'longname': jsd['VariableName'],
+            'units': jsd['VariableUnits'],
+            'varid': jsd['VariableVarId'],
+            'dimensions': jsd['Dimensions']
+        }
 
 def _get_proba_info(params):
     proba_thres = 0
@@ -166,7 +290,49 @@ def _get_ckey_title(params):
         var_unit = 'days'
 
     if params['mapType'] == 'climatology':
-        var_name = f'{var_name} climatology'
+        clim_names = {
+            'mean': 'average',
+            'median': 'median',
+            'stdev': 'standard deviation',
+            'cv': 'coefficient of variation',
+            'probExc': 'probability of exceeding',
+            'probNoExc': 'probability of non-exceeding'
+        }
+        clim_fun = clim_names[params['climStats']]
+        var_name = f'{var_name}, {clim_fun}'
+        if params['climStats'] in ['probExc', 'probNoExc']:
+            if params['variable'] == 'length':
+                pt = int(params['probaThres'])
+                pt = f'{pt} days'
+            else:
+                pt = f'2026-{params['probaThres']}'
+                pt = datetime.strptime(pt, '%Y-%m-%d')
+                pt = pt.strftime('%b %d')
+
+            if params['probaUnit'] == 'perc':
+                var_unit = '%'
+            else:
+                var_unit = ''
+        else:
+            pt = ''
+            if params['variable'] == 'length':
+                clim_units = {
+                    'mean': 'days',
+                    'median': 'days',
+                    'stdev': 'days',
+                    'cv': '%'
+                }
+            else:
+                clim_units = {
+                    'mean': '',
+                    'median': '',
+                    'stdev': 'days',
+                    'cv': '%'
+                }
+
+            var_unit = clim_units[params['climStats']]
+
+        var_name = f'{var_name} {pt}'
 
     if params['mapType'] == 'anomaly':
         var_name = f'{var_name} anomaly'
@@ -175,8 +341,9 @@ def _get_ckey_title(params):
     if var_unit == '':
         ckey_title = var_name
     else:
-        ckey_title = f'{var_name} ({var_unit})'
+        ckey_title = f'{var_name} (units: {var_unit})'
 
+    ckey_title = ' '.join(ckey_title.split())
     return ckey_title
 
 def _format_ckey_labels_num(rainy_season, params):
@@ -228,12 +395,13 @@ def _format_ckey_labels_dates(
     format_labels = False
     if params['mapType'] == 'climatology':
         if params['variable'] in ['onset', 'cessation']:
-            labels = map_png['ckeys']['labels']
-            if params['variable'] == 'onset':
-                year = rainy_season.onset_start.values[0]
-            if params['variable'] == 'cessation':
-                year = rainy_season.cessation_start.values[0]
-            format_labels = True
+            if params['climStats'] in ['mean', 'median']:
+                labels = map_png['ckeys']['labels']
+                if params['variable'] == 'onset':
+                    year = rainy_season.onset_start.values[0]
+                if params['variable'] == 'cessation':
+                    year = rainy_season.cessation_start.values[0]
+                format_labels = True
 
     if params['mapType'] == 'rawdata':
         if params['variable'] in ['onset', 'cessation']:
@@ -280,6 +448,20 @@ def get_rainy_season(params):
         cache.set(cache_key, cached_data)
 
     return {'status': 0, 'data': cached_data}
+
+def check_rainy_season_cache_status(params):
+    rainy_season = params.get('rainy_season')
+    if not isinstance(rainy_season, dict):
+        return {
+            'status': -1,
+            'message': 'Missing rainy-season parameters.'
+        }
+
+    cache_key = hash_params_rainy_season(rainy_season)
+    return {
+        'status': 0,
+        'cached': cache.has(cache_key)
+    }
 
 def _compute_rainy_season(params):
     params_data = {
@@ -339,9 +521,13 @@ def _get_clim_data(
                 proba_unit=proba_unit,
                 time_dim='year',
             )
+            if cached_data.chunks is not None:
+                cached_data = cached_data.compute(
+                    scheduler='single-threaded'
+                )
+            cache.set(cache_key, cached_data)
         except Exception as e:
             return {'status': -1, 'message': str(e)}
-        cache.set(cache_key, cached_data)
 
     return {'status': 0, 'data': cached_data}
 
@@ -383,3 +569,161 @@ def init_rainy_season():
     season_data = get_rainy_season(params)
     if season_data['status'] == -1:
         raise ValueError(season_data['message'])
+
+def _read_crop_suitability_data(params):
+    params_data = {
+        k: params[k]
+        for k in ['temporalRes', 'dataset']
+    }
+    params_precip = params_data.copy()
+    params_precip['variable'] = 'precip'
+    precip = get_zarr_dataset(params_precip)
+    precip_da = precip['precip']
+
+    params_tmax = params_data.copy()
+    params_tmax['variable'] = 'tmax'
+    tmax = get_zarr_dataset(params_tmax)
+    tmax_da = tmax['tmax']
+
+    params_tmin = params_data.copy()
+    params_tmin['variable'] = 'tmin'
+    tmin = get_zarr_dataset(params_tmin)
+    tmin_da = tmin['tmin']
+
+    return precip_da, tmax_da, tmin_da
+
+def _get_crop_suitability_year(params):
+    precip, tmax, tmin =  _read_crop_suitability_data(params)
+    precip_data = _get_crop_suitability_season(precip, params)
+    if precip_data['status'] == -1:
+        return precip_data
+    precip = precip_data['data']
+    tmax_data = _get_crop_suitability_season(tmax, params)
+    if tmax_data['status'] == -1:
+        return tmax_data
+    tmax = tmax_data['data']
+    tmin_data = _get_crop_suitability_season(tmin, params)
+    if tmin_data['status'] == -1:
+        return tmin_data
+    tmin = tmin_data['data']
+    return {'status': 0, 'data': (precip, tmax, tmin)}
+
+def _get_crop_suitability_season(xr_da, params):
+    tindex = get_daily_index_season(
+        xr_da['time'].values,
+        params['startMonth'],
+        params['startDay'],
+        params['endMonth'],
+        params['endDay']
+    )
+    cyear = year_daily_index_season(
+        tindex, params['Year']
+    )
+    if cyear: return cyear
+
+    index = tindex['index'][params['Year']]
+    frac = tindex['length'][params['Year']]['frac']
+    nb_seas = tindex['length'][params['Year']]['nb_seas']
+    if frac < params['minFrac']:
+        msg = 'Not enough data to compute the seasonal parameter'
+        return {'status': -1, 'message': msg}
+
+    xr_da = xr_da.isel(time=index)
+    xr_nomiss = xr_da.notnull().sum(dim='time')
+    xr_frac = xr_nomiss / nb_seas
+    xr_da = xr_da.where(xr_frac >= params['minFrac'], np.nan)
+    return {'status': 0, 'data': xr_da}
+
+def _compute_crop_suitability(params):
+    cs_data = _get_crop_suitability_year(params)
+    if cs_data['status'] == -1:
+        return cs_data
+    precip, tmax, tmin = cs_data['data']
+
+    spatial_coords = {
+        'lat': precip['lat'],
+        'lon': precip['lon']
+    }
+    if not (
+        precip['lat'].equals(tmax['lat'])
+        and precip['lon'].equals(tmax['lon'])
+    ):
+        tmax = tmax.interp(spatial_coords)
+    if not (
+        precip['lat'].equals(tmin['lat'])
+        and precip['lon'].equals(tmin['lon'])
+    ):
+        tmin = tmin.interp(spatial_coords)
+
+    precip, tmax, tmin = xr.align(
+        precip, tmax, tmin, join='inner'
+    )
+    if precip.sizes['time'] == 0:
+        return {
+            'status': -1,
+            'message': 'Rainfall and temperature have no common dates.'
+        }
+
+    max_temp = (
+        tmax.mean(dim='time', skipna=True)
+        <= float(params['tempHigh'])
+    )
+    min_temp = (
+        tmin.mean(dim='time', skipna=True)
+        >= float(params['tempLow'])
+    )
+    temp_range = (
+        (tmax - tmin).mean(dim='time', skipna=True)
+        <= float(params['tempOptim'])
+    )
+    wet_days = (
+        (precip >= float(params['rainThres'])).sum(dim='time')
+        >= int(params['nbWetDays'])
+    )
+    total_precip = precip.sum(dim='time', skipna=True)
+    precip_range = (
+        (total_precip >= float(params['precipLow']))
+        & (total_precip <= float(params['precipHigh']))
+    )
+
+    valid = (
+        precip.notnull().any(dim='time')
+        & tmax.notnull().any(dim='time')
+        & tmin.notnull().any(dim='time')
+    )
+    crop_suit = (
+        max_temp.astype(np.int8)
+        + min_temp.astype(np.int8)
+        + temp_range.astype(np.int8)
+        + precip_range.astype(np.int8)
+        + wet_days.astype(np.int8)
+    ).where(valid)
+
+    suitability = xr.Dataset(
+        data_vars={
+            'max_temp': max_temp.where(valid),
+            'min_temp': min_temp.where(valid),
+            'temp_range': temp_range.where(valid),
+            'precip_range': precip_range.where(valid),
+            'wet_days': wet_days.where(valid),
+            'crop_suit': crop_suit,
+        },
+        attrs={
+            'title': 'Crop climate suitability',
+            'target_year': int(params['Year']),
+            'season_start': (
+                f"{int(params['startMonth']):02d}-"
+                f"{int(params['startDay']):02d}"
+            ),
+            'season_end': (
+                f"{int(params['endMonth']):02d}-"
+                f"{int(params['endDay']):02d}"
+            ),
+        }
+    )
+    suitability['crop_suit'].attrs = {
+        'long_name': 'Crop climate suitability',
+        'units': 'index',
+        'valid_range': [0, 5],
+    }
+    return {'status': 0, 'data': suitability}

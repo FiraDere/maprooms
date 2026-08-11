@@ -304,12 +304,15 @@ function queryParamsRainySeason(time_res) {
     return query;
 }
 
-function queryParamsAgricultureAnalysisMap(time_res) {
+function queryParamsAgricultureAnalysisMap(
+    time_res, offcanvasEvent = null
+) {
     let query = new Object();
     query.temporalRes = time_res;
     query.dataset = DATA_SET.use;
+    query.mapPage = URL_ARGS.page;
 
-    if (URL_ARGS.page === 'rainy-season') {
+    if (query.mapPage === 'rainy-season') {
         query.variable = $(`#${time_res}-map-variable`).val();
         query.mapType = $(`#${time_res}-map-type`).val();
         query.minYear = 15;
@@ -331,6 +334,9 @@ function queryParamsAgricultureAnalysisMap(time_res) {
                         $(`#${time_res}-clim-stats-proba-error`)
                             .text(`${msg1}, ${msg2}`)
                             .css({ 'color': 'red', 'font-weight': 'bold' });
+                        if (offcanvasEvent !== null) {
+                            offcanvasEvent.preventDefault();
+                        }
                         return false;
                     }
                 }
@@ -340,18 +346,53 @@ function queryParamsAgricultureAnalysisMap(time_res) {
             query.Year = parseInt($(`#${time_res}-map-date-tseries-year`).val().trim(), 10);
         }
         query.rainy_season = queryParamsRainySeason(time_res);
-    } else if (URL_ARGS.page === 'decision-support') {
-        query.variable = $(`#${time_res}-map-variable`).val();
+    } else if (query.mapPage === 'decision-support') {
+        query.mvariable = $(`#${time_res}-map-variable`).val();
+        query.variable = CLIMATO_OPT[query.mvariable].variable;
+        query.climStats = CLIMATO_OPT[query.mvariable].function;
+        query.minYear = 15;
+
+        if (query.mvariable === 'monit') {
+            query.mapType = 'rawdata';
+        } else {
+            query.mapType = 'climatology';
+        }
+
+        if (['pe_onset', 'pe_length'].includes(query.mvariable)) {
+            $(`#${time_res}-proba-thres-error`).empty();
+            proba_thres = $(`#${time_res}-proba-thres-value`).val();
+            if (query.mvariable === 'pe_length') {
+                query.probaThres = parseInt(proba_thres, 10);
+            } else {
+                if (isValidMonthDay(proba_thres)) {
+                    query.probaThres = proba_thres;
+                } else {
+                    const frmt = PROBA_OPT.thres[query.mvariable].unit;
+                    const msg1 = `Invalid "month-day" date: ${proba_thres}`;
+                    const msg2 = `the format must be: ${frmt}`;
+                    $(`#${time_res}-proba-thres-error`)
+                        .text(`${msg1}, ${msg2}`)
+                        .css({ 'color': 'red', 'font-weight': 'bold' });
+                    if (offcanvasEvent !== null) {
+                        offcanvasEvent.preventDefault();
+                    }
+                    return false;
+                }
+            }
+            query.probaUnit = 'perc';
+        }
         query.rainy_season = queryParamsRainySeason(time_res);
-    } else if (URL_ARGS.page === 'crops-suitability') {
-        query.variable = $(`#${time_res}-map-variable`).val();
+    } else if (query.mapPage === 'crops-suitability') {
+        query.mvariable = $(`#${time_res}-map-variable`).val();
 
         query.startMonth = parseInt($(`#${time_res}-cs-start-mon`).val(), 10);
         query.startDay = parseInt($(`#${time_res}-cs-start-day`).val(), 10);
         query.endMonth = parseInt($(`#${time_res}-cs-end-mon`).val(), 10);
         query.endDay = parseInt($(`#${time_res}-cs-end-day`).val(), 10);
+        query.Year = parseInt($(`#${time_res}-cs-tseries-year`).val(), 10);
+        query.minFrac = 0.95;
 
-        if (query.variable === 'suitability') {
+        if (query.mvariable === 'suitability') {
             query.precipLow = Number($(`#${time_res}-cs-precip-low`).val());
             query.precipHigh = Number($(`#${time_res}-cs-precip-high`).val());
             query.tempLow = Number($(`#${time_res}-cs-temp-low`).val());
@@ -388,19 +429,48 @@ function displayAgricultureAnalysisMap(time_res, options, map) {
         'agriculture_analysis_map'
     );
 
+    let cacheStatusEndpoint = null;
+    if (query.mapPage !== 'crops-suitability') {
+        cacheStatusEndpoint = createEndpoint(
+            'agriculture_analysis',
+            'rainy_season_cache_status'
+        );
+    }
+
     const request = ajaxLeafletMap(
         endpoint,
         query,
         displayRasterImage,
         options,
-        map
+        map,
+        cacheStatusEndpoint
     );
 
     if (request && request.always) {
         request.always(() => {
-            map.displayText_date.update(
-                request.responseJSON.data.date
-            );
+            if (request.responseJSON.data) {
+                if (query.mapPage === 'rainy-season') {
+                    map.displayText_date.update(
+                        request.responseJSON.data.date
+                    );
+                }
+                if (query.mapPage === 'decision-support') {
+                    const text = $(
+                        `#${time_res}-map-variable ` +
+                        `option[value='${query.mvariable}']`
+                    ).text();
+                    const options = { position: 'bottomright' };
+                    const displayText =
+                        addLControlDisplayTextAboveColorBar(
+                            'text-ds', options, map
+                        );
+                    displayText.update(text);
+                }
+                if (query.mapPage === 'crops-suitability') {
+                    date = displayTimeSeriesDateMap(query);
+                    map.displayText_date.update(date);
+                }
+            }
         });
     }
 

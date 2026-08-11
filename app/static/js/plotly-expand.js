@@ -2551,3 +2551,139 @@ function expand_agri_rseason_display_anom(json, container) {
     setPlotlyThemeColors(container);
     resizePlotlyChart(container);
 }
+
+///////
+
+function expand_agri_cropsuit_query(tempRes) {
+    let query = queryParamsSpatialAverage();
+    if (!query) {
+        return query;
+    }
+
+    query.temporalRes = tempRes;
+    query.dataset = DATA_SET.use;
+    query.mapPage = URL_ARGS.page;
+    query.minFrac = 0.95;
+    query.variable = 'suitability';
+
+    query.startMonth = parseInt($(`#${tempRes}-cs-ts-start-mon`).val(), 10);
+    query.startDay = parseInt($(`#${tempRes}-cs-ts-start-day`).val(), 10);
+    query.endMonth = parseInt($(`#${tempRes}-cs-ts-end-mon`).val(), 10);
+    query.endDay = parseInt($(`#${tempRes}-cs-ts-end-day`).val(), 10);
+
+    query.precipLow = Number($(`#${tempRes}-cs-ts-precip-low`).val());
+    query.precipHigh = Number($(`#${tempRes}-cs-ts-precip-high`).val());
+    query.tempLow = Number($(`#${tempRes}-cs-ts-temp-low`).val());
+    query.tempHigh = Number($(`#${tempRes}-cs-ts-temp-high`).val());
+    query.tempOptim = Number($(`#${tempRes}-cs-ts-temp-optim`).val());
+    query.nbWetDays = parseInt($(`#${tempRes}-cs-ts-nb-wetdays`).val(), 10);
+    query.rainThres = Number($(`#${tempRes}-cs-ts-rain-thres`).val());
+
+    return query;
+}
+
+function expand_agri_cropsuit_charts(container_id, tempRes) {
+    const query = expand_agri_cropsuit_query(tempRes);
+    if (!query) {
+        return false;
+    }
+
+    if (checkQueryPointOutside(query, tempRes)) {
+        return false;
+    }
+
+    ajaxDisplayChart(
+        '/agriculture_analysis_cropsuit',
+        query,
+        expand_agri_cropsuit_display,
+        container_id
+    );
+}
+
+function expand_agri_cropsuit_display(json, container) {
+    const divCont = $(`#${container}`);
+    divCont.empty();
+
+    const scoreColors = [
+        '#8b4513', '#f28e2b', '#f1ce3e',
+        '#98d594', '#31a354', '#006d2c'
+    ];
+    const barValues = json.values.map(value => {
+        if (value === null) {
+            return null;
+        }
+        return value === 0 ? 0.08 : value;
+    });
+    const barColors = json.values.map(value => {
+        return value === null ? '#6c757d' : scoreColors[value];
+    });
+
+    const data = [{
+        x: json.time,
+        y: barValues,
+        customdata: json.values,
+        type: 'bar',
+        name: json.info.var.name,
+        marker: {
+            color: barColors,
+            line: {
+                width: 0
+            }
+        },
+        hovertemplate:
+            'Year: %{x}<br>%{data.name}: %{customdata:.0f}' +
+            '<extra></extra>'
+    }];
+
+    let layout = {
+        xaxis: {
+            showline: true,
+            showgrid: true,
+            gridwidth: 0.3,
+            griddash: 'dot',
+            rangeslider: plotly_rangeslider,
+            ticks: 'outside',
+            ticklen: 8,
+            title: {
+                text: 'Year'
+            }
+        },
+        yaxis: {
+            range: json.yrange,
+            tickvals: json.yticks,
+            ticks: 'outside',
+            ticklen: 8,
+            fixedrange: true,
+            showline: true,
+            showgrid: true,
+            gridwidth: 0.3,
+            griddash: 'dot',
+            title: {
+                text: 'Suitability index'
+            }
+        },
+        showlegend: false,
+        bargap: 0.15,
+        width: getChartWidth(container),
+        height: getChartHeight(container)
+    };
+
+    layout = deepMerge(setPlotlyColors(), layout);
+    layout = deepMerge(expand_layout, layout);
+    layout.xaxis.rangeslider.bgcolor = '#198754';
+
+    purgePlotlyChart(container);
+    Plotly.newPlot(
+        container,
+        data,
+        layout,
+        plotly_config
+    );
+
+    const lastYear = json.time[json.time.length - 1];
+    const ranges = ['10Y', '15Y', '20Y', '30Y', 'ALL'];
+    addRangeselector(container, ranges, lastYear, 'year');
+
+    setPlotlyThemeColors(container);
+    resizePlotlyChart(container);
+}

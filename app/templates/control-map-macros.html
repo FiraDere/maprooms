@@ -480,6 +480,14 @@
         <option value="{{key}}">{{value}}</option>
         {% endfor %}
     </select>
+    <div id="{{ tempRes }}-proba-thres-div" class="mt-3" style="display: none;">
+        <div>
+            <span id="{{ tempRes }}-proba-thres-text">{{ pageText.opt_proba.text.pe_onset }}</span>
+            <input id="{{ tempRes }}-proba-thres-value" class="form-control form-control-sm text-center d-inline-block w-auto align-middle" type="text" size="5" value="{{ pageText.opt_proba.thres.pe_onset.value }}">
+            <span id="{{ tempRes }}-proba-thres-unit">{{ pageText.opt_proba.thres.pe_onset.unit }}</span>
+        </div>
+        <div id="{{ tempRes }}-proba-thres-error"></div>
+    </div>
 </fieldset>
 <!--  -->
 {% include 'rainy-season-def.html' %}
@@ -571,5 +579,6 @@
             <span>{{ pageText.opt_wetday.text4 }}</span>
         </div>
     </fieldset>
+    <input type="hidden" id="{{ tempRes }}-map-type" value="rawdata">
 </div>
 {% endmacro %}

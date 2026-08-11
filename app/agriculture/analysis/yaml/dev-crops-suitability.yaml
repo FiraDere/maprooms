@@ -61,6 +61,23 @@ opt_season:
         en: Display year
         fr: Afficher année
 
+
+opt_season_ts:
+    label_year:
+        start:
+            en: Start year
+            fr: Début année
+        end:
+            en: End year
+            fr: Fin année
+    label_season:
+        start:
+            en: Start season
+            fr: Début saison
+        end:
+            en: End season
+            fr: Fin saison
+
 opt_prcpoptim:
     label:
         en: Optimum seasonal total rainfall

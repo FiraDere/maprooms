@@ -38,4 +38,8 @@
 {% block javascript %}
 {% include "block-js.html" %}
 <script type="text/javascript" src="{{ url_for('agriculture_analysis.static', filename='js/decision-support.js') }}"></script>
+<script type="text/javascript">
+const PROBA_OPT = JSON.parse('{{ pageText.opt_proba | tojson }}');
+const CLIMATO_OPT = JSON.parse('{{ pageText.opt_climato | tojson }}');
+</script>
 {% endblock %}

@@ -735,3 +735,61 @@
     {% include "rainy-season-expand.html" %}
 </div>
 {% endmacro %}
+<!--  -->
+{% macro create_expand_charts_cropsuit(tempRes, pageText) %}
+<div class="container d-flex flex-wrap justify-content-start w-100" id="{{ tempRes }}-cropsuit-control">
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_season_ts.label_season.start }}</legend>
+        <div class="d-flex gap-1">
+            <select id="{{ tempRes }}-cs-ts-start-mon" class="form-select {{ tempRes }}-cropsuit-select2" style="width: 145px;"></select>
+            <select id="{{ tempRes }}-cs-ts-start-day" class="form-select {{ tempRes }}-cropsuit-select2" style="width: 70px;"></select>
+        </div>
+    </fieldset>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_season_ts.label_season.end }}</legend>
+        <div class="d-flex gap-1">
+            <select id="{{ tempRes }}-cs-ts-end-mon" class="form-select {{ tempRes }}-cropsuit-select2" style="width: 145px;"></select>
+            <select id="{{ tempRes }}-cs-ts-end-day" class="form-select {{ tempRes }}-cropsuit-select2" style="width: 70px;"></select>
+        </div>
+    </fieldset>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_prcpoptim.label }}</legend>
+        <div class="d-flex align-items-center gap-1">
+            <span>{{ pageText.opt_prcpoptim.text1 }}</span>
+            <input id="{{ tempRes }}-cs-ts-precip-low" class="form-control text-center w-auto" size="5" type="text" value="{{ pageText.default_values.precip_low }}">
+            <span>{{ pageText.opt_prcpoptim.text2 }}</span>
+            <input id="{{ tempRes }}-cs-ts-precip-high" class="form-control text-center w-auto" size="5" type="text" value="{{ pageText.default_values.precip_high }}">
+            <span>mm</span>
+        </div>
+    </fieldset>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_temptol.label }}</legend>
+        <div class="d-flex align-items-center gap-1">
+            <span>{{ pageText.opt_temptol.text1 }}</span>
+            <input id="{{ tempRes }}-cs-ts-temp-low" class="form-control text-center w-auto" size="3" type="text" value="{{ pageText.default_values.temp_low }}">
+            <span>{{ pageText.opt_temptol.text2 }}</span>
+            <input id="{{ tempRes }}-cs-ts-temp-high" class="form-control text-center w-auto" size="3" type="text" value="{{ pageText.default_values.temp_high }}">
+            <span>&deg;C</span>
+        </div>
+    </fieldset>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_tmpoptim.label }}</legend>
+        <div class="d-flex align-items-center gap-1">
+            <span>{{ pageText.opt_tmpoptim.text1 }}</span>
+            <input id="{{ tempRes }}-cs-ts-temp-optim" class="form-control text-center w-auto" size="3" type="text" value="{{ pageText.default_values.temp_optim }}">
+            <span>&deg;C</span>
+        </div>
+    </fieldset>
+    <fieldset class="border border-secondary rounded-3 py-1">
+        <legend class="legend-label">{{ pageText.opt_wetday.label }}</legend>
+        <div class="d-flex align-items-center gap-1">
+            <span>{{ pageText.opt_wetday.text1 }}</span>
+            <input id="{{ tempRes }}-cs-ts-nb-wetdays" class="form-control text-center w-auto" size="3" type="text" value="{{ pageText.default_values.nb_wetdays }}">
+            <span>{{ pageText.opt_wetday.text2 }},</span>
+            <span>{{ pageText.opt_wetday.text3 }}</span>
+            <input id="{{ tempRes }}-cs-ts-rain-thres" class="form-control text-center w-auto" size="3" type="text" value="{{ pageText.default_values.rain_thres }}">
+            <span>{{ pageText.opt_wetday.text4 }}</span>
+        </div>
+    </fieldset>
+</div>
+{% endmacro %}

@@ -110,3 +110,45 @@ variables:
             en: How likely is the rainy season lasting less than...
             fr: Quelle est la probabilité que la saison des pluies dure moins de...
 
+opt_proba:
+    text:
+        pe_onset:
+            en: Season onset past
+            fr: Début de la saison après
+        pe_length:
+            en: Season length less than
+            fr: Durée de la saison inférieure à
+    thres:
+        pe_onset:
+            value: '06-15'
+            unit: 
+                en: '(mm-dd)'
+                fr: '(mm-jj)'
+        pe_length:
+            value: 90
+            unit:
+                en: days
+                fr: jours
+
+opt_climato:
+    monit:
+        variable: onset
+        function: 
+    mean_onset:
+        variable: onset
+        function: mean
+    stdev_onset:
+        variable: onset
+        function: stdev
+    pe_onset:
+        variable: onset
+        function: probExc
+    mean_length:
+        variable: length
+        function: mean
+    stdev_length:
+        variable: length
+        function: stdev
+    pe_length:
+        variable: length
+        function: probNoExc

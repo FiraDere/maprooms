@@ -1,11 +1,11 @@
-async function setMapDatesNavInput(tempRes) {
+async function setMapDatesNavInput(tempRes, suffixID = 'map-date') {
     const this_date = $('#input-time-navigation').val().trim();
     if (this_date === '') {
         flashMessage(JS_TEXT.date_missing, 'error');
         return false;
     }
 
-    const tstepID = `${tempRes}-map-date`;
+    const tstepID = `${tempRes}-${suffixID}`;
     const maptype = $(`#${tempRes}-map-type`).val();
     if (maptype === 'climatology') {
         let cl_date = null;
@@ -76,14 +76,14 @@ async function setMapDatesNavInput(tempRes) {
     return true;
 }
 
-async function setMapDatesNavPrev(tempRes) {
+async function setMapDatesNavPrev(tempRes, suffixID = 'map-date') {
     const this_date = $('#input-time-navigation').val().trim();
     if (this_date === '') {
         flashMessage(JS_TEXT.date_missing, 'error');
         return false;
     }
 
-    const tstepID = `${tempRes}-map-date`;
+    const tstepID = `${tempRes}-${suffixID}`;
     const maptype = $(`#${tempRes}-map-type`).val();
     if (maptype === 'climatology') {
         let cl_date = null;
@@ -193,14 +193,14 @@ async function setMapDatesNavPrev(tempRes) {
     return true;
 }
 
-async function setMapDatesNavNext(tempRes) {
+async function setMapDatesNavNext(tempRes, suffixID = 'map-date') {
     const this_date = $('#input-time-navigation').val().trim();
     if (this_date === '') {
         flashMessage(JS_TEXT.date_missing, 'error');
         return false;
     }
 
-    const tstepID = `${tempRes}-map-date`;
+    const tstepID = `${tempRes}-${suffixID}`;
     const maptype = $(`#${tempRes}-map-type`).val();
     if (maptype === 'climatology') {
         let cl_date = null;

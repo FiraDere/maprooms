@@ -29,7 +29,10 @@
             </div>
             <div class="row justify-content-center">
                 <div class="col-sm-6">
-                    {{ fmacros.create_card_charts("div-chart-suitability", pageText) }}
+                    {{ fmacros.create_card_charts("div-chart-cropsuit", pageText) }}
+                    {% call fmacros.create_modal_expand_charts("div-chart-cropsuit", pageText) %}
+                    {{ fmacrosExp.create_expand_charts_cropsuit("daily", pageText) }}
+                    {% endcall %}
                 </div>
             </div>
         </div>

@@ -8,5 +8,24 @@ $(document).ready(function() {
     // offcanvas map controls
     setOffCanvasMapControlAgriculture('daily');
 
+    ////////////
+    // initialize map
+    const map_options = {};
+    displayAgricultureAnalysisMap('daily', map_options, map);
 
+    $('#map-control-offcanvas-dataselect')
+        .on('hide.bs.offcanvas', (event) => {
+            queryParamsAgricultureAnalysisMap('daily', event);
+        });
+
+    // display map when offcanvas hidden
+    $('#map-control-offcanvas-dataselect')
+        .on('hidden.bs.offcanvas', () => {
+            displayAgricultureAnalysisMap('daily', map_options, map);
+        });
+
+    //
+    $('#map-control-redraw').on('click', () => {
+        displayAgricultureAnalysisMap('daily', map_options, map);
+    });
 });

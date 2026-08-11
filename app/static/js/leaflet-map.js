@@ -339,6 +339,59 @@ function addLControlDisplayText(name, options, map = MAP_BE) {
     });
 }
 
+function addLControlDisplayTextAboveColorBar(
+    name, options, map = MAP_BE
+) {
+    const controlName = `displayText_${name}`;
+    if (map[controlName] !== undefined) {
+        map[controlName].remove();
+    }
+
+    const defaultOptions = {
+        id: `display-${name}-id`,
+        position: 'bottomright'
+    };
+    const newOptions = Object.assign({}, defaultOptions, options || {});
+    const displayText = L.control(newOptions);
+
+    displayText.onAdd = function() {
+        this._div = L.DomUtil.create(
+            'div', 'leaflet-display-text leaflet-colorbar-text'
+        );
+        this.update('');
+        L.DomEvent.disableClickPropagation(this._div);
+        return this._div;
+    };
+
+    displayText.update = function(text) {
+        $(this._div).text(text || '');
+    };
+
+    displayText.addTo(map);
+    map[controlName] = displayText;
+
+    //// modern ECMAScript optional chaining
+    // const colorBar = map.colorBar?.getContainer();
+    const colorBar = map.colorBar ?
+        map.colorBar.getContainer() :
+        null;
+    const textContainer = displayText.getContainer();
+    if (colorBar && textContainer) {
+        colorBar.parentNode.insertBefore(textContainer, colorBar);
+    }
+
+    $(textContainer).css({
+        'border-radius': '4px',
+        'padding': '3px 6px',
+        'background-color': '#2262CC',
+        'color': 'white',
+        'font-weight': 'bold',
+        'font-size': '12px'
+    });
+
+    return displayText;
+}
+
 function addLControlColorBar(colorkey, options, map = MAP_BE) {
     const default_options = {
         id: 'table-colorkey-id',

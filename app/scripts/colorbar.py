@@ -97,7 +97,10 @@ def format_ColorScale(breaks, colors, colors_ext):
         else:
             kol[j] = colors[j - 1]
 
-    breaks = [str(round(x, 4)) for x in breaks]
+    breaks = [round(x, 4) for x in breaks]
+    if all(not isinstance(x, float) or x.is_integer() for x in breaks):
+        breaks = [int(x) if isinstance(x, float) else x for x in breaks]
+    breaks = [str(x) for x in breaks]
 
     return {'labels': breaks, 'colors': kol}
 

@@ -23,6 +23,10 @@ function preview_rainyseason_display_charts(tempRes) {
     preview_rainyseason_charts_anom(tempRes, 'div-chart-anom');
 }
 
+function preview_cropsuitability_display_charts(tempRes) {
+    preview_cropsuitability_charts_series(tempRes, 'div-chart-cropsuit');
+}
+
 ///////////////////
 
 function analysis_query_format_date(date, temp_res) {
@@ -1560,6 +1564,126 @@ function preview_rainyseason_display_anom(json, container) {
 
     layout = deepMerge(setPlotlyColors(), layout);
     layout = deepMerge(preview_layout, layout);
+
+    const config = {
+        displayModeBar: false,
+        responsive: true
+    };
+
+    purgePlotlyChart(container);
+    Plotly.newPlot(
+        container,
+        data,
+        layout,
+        config
+    );
+
+    setPlotlyThemeColors(container);
+}
+
+///////
+
+function preview_cropsuitability_query_series(tempRes) {
+    let query = queryParamsSpatialAverage();
+    if (!query) {
+        return query;
+    }
+
+    query.temporalRes = tempRes;
+    query.dataset = DATA_SET.use;
+    query.mapPage = URL_ARGS.page;
+    query.minFrac = 0.95;
+
+    query.variable = $(`#${tempRes}-map-variable`).val();
+
+    query.startMonth = parseInt($(`#${tempRes}-cs-start-mon`).val(), 10);
+    query.startDay = parseInt($(`#${tempRes}-cs-start-day`).val(), 10);
+    query.endMonth = parseInt($(`#${tempRes}-cs-end-mon`).val(), 10);
+    query.endDay = parseInt($(`#${tempRes}-cs-end-day`).val(), 10);
+
+    query.precipLow = Number($(`#${tempRes}-cs-precip-low`).val());
+    query.precipHigh = Number($(`#${tempRes}-cs-precip-high`).val());
+    query.tempLow = Number($(`#${tempRes}-cs-temp-low`).val());
+    query.tempHigh = Number($(`#${tempRes}-cs-temp-high`).val());
+    query.tempOptim = Number($(`#${tempRes}-cs-temp-optim`).val());
+    query.nbWetDays = parseInt($(`#${tempRes}-cs-nb-wetdays`).val(), 10);
+    query.rainThres = Number($(`#${tempRes}-cs-rain-thres`).val());
+
+    return query;
+}
+
+function preview_cropsuitability_charts_series(tempRes, contID) {
+    const query = preview_cropsuitability_query_series(tempRes);
+    if (!query) {
+        return false;
+    }
+    if (checkQueryPointOutside(query, tempRes)) {
+        return false;
+    }
+
+    ajaxDisplayChart(
+        '/agriculture_analysis_cropsuit',
+        query,
+        preview_cropsuitability_display_series,
+        contID
+    );
+}
+
+function preview_cropsuitability_display_series(json, container) {
+    const divCont = $(`#${container}`);
+    divCont.empty();
+
+    const xlim = [
+        Math.min(...json.time) - 1,
+        Math.max(...json.time) + 1
+    ];
+    const barValues = json.values.map(value => {
+        if (value === null) {
+            return null;
+        }
+        return value === 0 ? 0.08 : value;
+    });
+
+    const data = [{
+        x: json.time,
+        y: barValues,
+        customdata: json.values,
+        type: 'bar',
+        name: json.info.var.name,
+        marker: {
+            color: 'orange',
+            line: {
+                width: 0
+            }
+        },
+        hovertemplate: 'Year: %{x}<br>%{data.name}: %{customdata:.0f}' +
+            '<extra></extra>'
+    }];
+
+    let layout = {
+        xaxis: {
+            range: xlim,
+            fixedrange: true,
+            showline: true,
+            showgrid: true,
+            gridwidth: 0.3,
+            griddash: 'dot',
+            gridcolor: 'lightgray'
+        },
+        yaxis: {
+            range: json.yrange,
+            tickvals: json.yticks,
+            fixedrange: true,
+            showline: true,
+            showgrid: true,
+            gridwidth: 0.3,
+            griddash: 'dot',
+        },
+    };
+
+    layout = deepMerge(setPlotlyColors(), layout);
+    layout = deepMerge(preview_layout, layout);
+    layout.margin.l = 20;
 
     const config = {
         displayModeBar: false,

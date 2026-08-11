@@ -376,6 +376,7 @@ function setClimatePhasesTelecon(tempRes, teleIndex) {
 function setOffCanvasMapControlAgriculture(tempRes) {
     if (URL_ARGS.page === 'rainy-season') {
         setRainySeasonCalendarOnset(tempRes);
+
         $(`#${tempRes}-map-variable`)
             .off(`change.rainySeason`)
             .on(`change.rainySeason`, function() {
@@ -404,9 +405,65 @@ function setOffCanvasMapControlAgriculture(tempRes) {
             });
     } else if (URL_ARGS.page === 'decision-support') {
         setRainySeasonCalendarOnset(tempRes);
+
+        $(`#${tempRes}-map-variable`)
+            .off(`change.decisionSupport`)
+            .on(`change.decisionSupport`, function() {
+                setDecisionSupportVisibilityProba(tempRes, $(this).val());
+            });
     } else {
         setAnalysisDateCalendarMonDay(tempRes, 'cs');
+        refreshSpatialAverage(tempRes, datasetFromVariable = false);
+
+        $(`#${tempRes}-map-variable`)
+            .off(`change.cropSuitability`)
+            .on(`change.cropSuitability`, function() {
+                const thisVar = $(this).val()
+                setCropSuitabilityVisibilitySelectPoint(tempRes, thisVar);
+
+                if (thisVar === 'suitability') {
+                    preview_cropsuitability_display_charts(tempRes);
+                }
+            });
+
+        setCropSuitabilityVisibilitySelectYear(tempRes);
+        $(`#${tempRes}-cs-tseries-year`)
+            .on('input', function() {
+                const this_year = $(this).val();
+                $('#input-time-navigation').val(this_year);
+            });
     }
+}
+
+function setCropSuitabilityVisibilitySelectPoint(time_res, variable) {
+    // if (variable === 'suitability') {
+    //     $('#div-support-spatial-average').show();
+    //     $('#div-list-spatial-average').show();
+
+    //     //// grid point only 
+    //     $('#support-spatial-average').prop('disabled', true);
+    //     $('#list-spatial-average').prop('disabled', true);
+    // } else {
+    //     $('#div-support-spatial-average').hide();
+    //     $('#div-list-spatial-average').hide();
+    // }
+
+    //// grid point only 
+    $('#support-spatial-average').prop('disabled', true);
+    $('#list-spatial-average').prop('disabled', true);
+}
+
+function setCropSuitabilityVisibilitySelectYear(time_res) {
+    const variable = $(`#${time_res}-map-variable`).val();
+    const year_cov = getTempCoverageYear(
+        DATA_SET.use, time_res, variable
+    );
+    $(`#${time_res}-cs-tseries-year`).attr({
+        'min': year_cov.start,
+        'max': year_cov.end
+    }).val(year_cov.end - 1);
+
+    $('#input-time-navigation').val(year_cov.end - 1);
 }
 
 function setRainySeasonVisibilitySelectYear(time_res) {
@@ -463,5 +520,19 @@ function setRainySeasonVisibilityProba(tempRes) {
         $(`#${tempRes}-clim-stats-proba`).val(PROBA_OPT.thres[variable].value);
     } else {
         $(`#${tempRes}-proba-exceed-settings`).hide();
+    }
+}
+
+function setDecisionSupportVisibilityProba(tempRes, variable) {
+    $(`#${tempRes}-proba-thres-error`).empty();
+
+    if (['pe_onset', 'pe_length'].includes(variable)) {
+        $(`#${tempRes}-proba-thres-div`).show();
+
+        $(`#${tempRes}-proba-thres-text`).text(PROBA_OPT.text[variable]);
+        $(`#${tempRes}-proba-thres-unit`).text(PROBA_OPT.thres[variable].unit);
+        $(`#${tempRes}-proba-thres-value`).val(PROBA_OPT.thres[variable].value);
+    } else {
+        $(`#${tempRes}-proba-thres-div`).hide();
     }
 }

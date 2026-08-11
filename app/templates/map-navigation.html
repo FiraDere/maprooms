@@ -13,11 +13,11 @@
             <button id="next-time-navigation" class="btns-leaflet-control" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ pageText.time_nav_next }}"><i class="bi bi-arrow-right-square-fill"></i></button>
         </div>
         <!-- spatial average point or polygon -->
-        <div class="col m-0 p-0 div-spatial-average">
+        <div id="div-list-spatial-average" class="col m-0 p-0 div-spatial-average">
             <select id="list-spatial-average" class="form-select form-select2" style="width: 200px;"></select>
         </div>
         <!-- spatial average type -->
-        <div class="col m-0 p-0 div-spatial-average">
+        <div id="div-support-spatial-average" class="col m-0 p-0 div-spatial-average">
             <select id="support-spatial-average" class="form-select form-select2-nosearch" style="width: 200px;">
                 {% for key, value in pageText.layers.extract_gridpoint.items() %}
                 <option value="{{key}}" selected>{{value}}</option>

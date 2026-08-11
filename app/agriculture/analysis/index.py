@@ -8,11 +8,15 @@ from flask import current_app as app
 import json
 import config
 
-from .scripts.analysis_sp import agriculture_analysis_sp_data
+from .scripts.analysis_sp import (
+    agriculture_analysis_sp_data,
+    check_rainy_season_cache_status
+)
 from .scripts.analysis_ts import (
     agriculture_analysis_ts_series,
     agriculture_analysis_ts_proba,
-    agriculture_analysis_ts_anom
+    agriculture_analysis_ts_anom,
+    agriculture_analysis_ts_cropsuit
 )
 
 agriculture_analysis = Blueprint(
@@ -44,6 +48,15 @@ def agriculture_analysis_map():
     except Exception as e:
         return json.dumps({'status': -1, 'message': str(e)})
 
+@agriculture_analysis.route('/rainy_season_cache_status', methods=['POST'])
+def rainy_season_cache_status():
+    params = request.get_json()
+    try:
+        status = check_rainy_season_cache_status(params)
+        return json.dumps(status)
+    except Exception as e:
+        return json.dumps({'status': -1, 'message': str(e)})
+
 @agriculture_analysis.route('/agriculture_analysis_series', methods=['POST'])
 def agriculture_analysis_series():
     params = request.get_json()
@@ -68,5 +81,14 @@ def agriculture_analysis_anom():
     try:
         data_anom = agriculture_analysis_ts_anom(params)
         return json.dumps(data_anom)
+    except Exception as e:
+        return json.dumps({'status': -1, 'message': str(e)})
+
+@agriculture_analysis.route('/agriculture_analysis_cropsuit', methods=['POST'])
+def agriculture_analysis_cropsuit():
+    params = request.get_json()
+    try:
+        data_cs = agriculture_analysis_ts_cropsuit(params)
+        return json.dumps(data_cs)
     except Exception as e:
         return json.dumps({'status': -1, 'message': str(e)})

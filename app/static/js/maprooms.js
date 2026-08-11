@@ -328,7 +328,10 @@ function displayAjaxError(jqXHR, textStatus, errorThrown) {
     $(win.document.body).html(jqXHR.responseText);
 }
 
-function ajaxLeafletMap(endpoint, query, callback, options, map) {
+function ajaxLeafletMap(
+    endpoint, query, callback, options, map,
+    cacheStatusEndpoint = null
+) {
     const spin_opts = spinnerMapOptions();
     return $.ajax({
         type: 'POST',
@@ -350,6 +353,25 @@ function ajaxLeafletMap(endpoint, query, callback, options, map) {
             callback(json.data, options, map);
         },
         beforeSend: () => {
+            if (cacheStatusEndpoint !== null) {
+                $.ajax({
+                    type: 'POST',
+                    url: cacheStatusEndpoint,
+                    dataType: 'json',
+                    data: JSON.stringify(query),
+                    contentType: 'application/json',
+                    success: (status) => {
+                        if (status.status === 0 && !status.cached) {
+                            flashMessage(
+                                'Processing may take some time. ' +
+                                'Please do not refresh or close your browser ' +
+                                'while it is in progress.',
+                                'warning'
+                            );
+                        }
+                    }
+                });
+            }
             map.closePopup();
             map.spin(true, spin_opts);
         },

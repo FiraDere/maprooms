@@ -764,11 +764,6 @@ function setRainySeasonExpandModal(tempRes, chartType, contID) {
 
 function setCropSuitabilityExpandModal(tempRes, contID) {
     showModalDialog(`modal-expand-${contID}`);
-    expandModalCharts(
-        contID,
-        expand_agri_cropsuit_charts,
-        tempRes
-    );
     purgePlotlyChartExpandModal(contID);
 
     const prefix = `${tempRes}-cs-ts`;
@@ -813,4 +808,12 @@ function setCropSuitabilityExpandModal(tempRes, contID) {
         .on('click.chartCropSuit', function() {
             downloadPlotlyImageJPG(contChart);
         });
+
+    // Start the first request only after every modal control has been created
+    // and synchronized with the corresponding map control.
+    expandModalCharts(
+        contID,
+        expand_agri_cropsuit_charts,
+        tempRes
+    );
 }

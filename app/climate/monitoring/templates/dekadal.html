@@ -16,7 +16,7 @@
                 <div class="col-sm-12 col-map-container">
                     <div id="div-map-container" class="div-map-container">
                         {% call fmacros.create_map_control(pageText, urlArgs) %}
-                        <div>Test</div>
+                        {{ fmacrosMap.create_map_control_monitoring("dekadal", pageText) }}
                         {% endcall %}
                     </div>
                 </div>

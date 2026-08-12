@@ -582,3 +582,23 @@
     <input type="hidden" id="{{ tempRes }}-map-type" value="rawdata">
 </div>
 {% endmacro %}
+<!--  -->
+{% macro create_map_control_monitoring(tempRes, pageText) %}
+<div class="container">
+    <fieldset class="border border-secondary rounded-3">
+        <legend class="legend-label">{{ pageText.variables.label }}</legend>
+        <div>
+            <select id="{{ tempRes }}-map-variable" class="form-select form-select2-nosearch">
+                {% for key, value in pageText.variables.select.items() %}
+                <option value="{{key}}">{{value}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="{{ tempRes }}-cumul-since-div" class="mt-2" style="display: none;">
+            <span>{{ pageText.cumul_since }}</span>
+            <select id="{{ tempRes }}-cumul-since-mon" class="form-select form-select2-nosearch w-auto align-middle" style="width: 120px;"></select>
+            <select id="{{ tempRes }}-cumul-since-dek" class="form-select form-select2-nosearch w-auto align-middle"></select>
+        </div>
+    </fieldset>
+</div>
+{% endmacro %}

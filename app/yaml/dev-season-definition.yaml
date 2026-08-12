@@ -29,3 +29,9 @@ rainy_season:
         minFrac: 0.75
         rmIsolatedPix: True
     where: [climate, agriculture]
+dekadal_monitoring:
+    dekad_since:
+        month: 1
+        dekad: 1
+monthly_monitoring:
+    month_since: 1

@@ -40,6 +40,9 @@ plotly_replot:
 plotly_download:
     en: Download as image
     fr: Télécharger comme image
+plotly_chrat_edit:
+    en: Chart settings
+    fr: Paramètres du graphique
 close_button:
     en: Close
     fr: Fermer

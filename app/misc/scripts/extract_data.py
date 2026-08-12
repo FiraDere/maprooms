@@ -1,3 +1,4 @@
+import xarray as xr
 
 def extract2D_region(xr_ds: xr.Dataset, bbox: dict) -> xr.Dataset:
     lon = xr_ds['lon'].values

@@ -418,7 +418,7 @@ function setOffCanvasMapControlAgriculture(tempRes) {
         $(`#${tempRes}-map-variable`)
             .off(`change.cropSuitability`)
             .on(`change.cropSuitability`, function() {
-                const thisVar = $(this).val()
+                const thisVar = $(this).val();
                 setCropSuitabilityVisibilitySelectPoint(tempRes, thisVar);
 
                 if (thisVar === 'suitability') {
@@ -535,4 +535,52 @@ function setDecisionSupportVisibilityProba(tempRes, variable) {
     } else {
         $(`#${tempRes}-proba-thres-div`).hide();
     }
+}
+
+//////////////
+
+function setOffCanvasMapControlMonitoring(tempRes) {
+    if (tempRes === 'dekadal') {
+        setMonitoringDekadSince(tempRes);
+        refreshSpatialAverage(tempRes);
+
+        $(`#${tempRes}-map-variable`)
+            .off(`change.monitDekadal`)
+            .on(`change.monitDekadal`, function() {
+                setMonitoringDekadVisibility(tempRes, $(this).val());
+            });
+    }
+}
+
+function setMonitoringDekadVisibility(tempRes, variable) {
+    if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(variable)) {
+        setVisibility(
+            [`${tempRes}-cumul-since-div`], []
+        );
+    } else {
+        setVisibility(
+            [], [`${tempRes}-cumul-since-div`]
+        );
+    }
+}
+
+function setMonitoringDekadSince(tempRes) {
+    const months = getListOfMonthsCalendar().long;
+    for (let m = 0; m < months.length; m++) {
+        $(`#${tempRes}-cumul-since-mon`).append(
+            $('<option>')
+            .text(months[m])
+            .val(m + 1)
+        );
+    }
+    $(`#${tempRes}-cumul-since-mon`).val(DEKAD_SINCE.month);
+
+    for (let d = 0; d < 3; d++) {
+        $(`#${tempRes}-cumul-since-dek`).append(
+            $('<option>')
+            .text(d + 1)
+            .val(d + 1)
+        );
+    }
+    $(`#${tempRes}-cumul-since-dek`).val(DEKAD_SINCE.dekad);
 }

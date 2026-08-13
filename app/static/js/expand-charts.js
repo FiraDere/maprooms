@@ -526,6 +526,13 @@ function setAnalysisExpandModalSeason(tempRes, contID) {
         .on('click.chartTsSeason', function() {
             downloadPlotlyImageJPG(contChart);
         });
+
+    // chart settings
+    $(`#plotly-chart-edit-${contID}`)
+        .off('click.chartTsSeason')
+        .on('click.chartTsSeason', function() {
+            console.log('set dialog box');
+        });
 }
 
 function setAnalysisExpandModalEnso(tempRes, contID) {

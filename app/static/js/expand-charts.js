@@ -528,11 +528,7 @@ function setAnalysisExpandModalSeason(tempRes, contID) {
         });
 
     // chart settings
-    $(`#plotly-chart-edit-${contID}`)
-        .off('click.chartTsSeason')
-        .on('click.chartTsSeason', function() {
-            console.log('set dialog box');
-        });
+    setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
 function setAnalysisExpandModalEnso(tempRes, contID) {

@@ -123,13 +123,39 @@
     max-height: 80vh;
     z-index: 9999;
     border-radius: var(--bs-modal-border-radius);
-    background-color: var(--bs-modal-bg);
+    background-color: var(--bs-body-bg, #ffffff);
+    color: var(--bs-body-color, #212529);
     /*border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);*/
+    border: 5px solid var(--bs-modal-border-color);
+}
+
+[data-bs-theme="light"] .dialog-box-settings {
+    background-color: #ffffff;
+    color: #212529;
+    /*border-color: #dee2e6;*/
+    border: 5px solid var(--bs-modal-border-color);
+}
+
+[data-bs-theme="dark"] .dialog-box-settings {
+    background-color: #212529;
+    color: #dee2e6;
+    /*border-color: #495057;*/
     border: 5px solid var(--bs-modal-border-color);
 }
 
 .dialog-box-settings .select2-container--open {
     z-index: 10000;
+}
+
+.plotly-chart-settings-dialog {
+    width: min(520px, calc(100vw - 2rem));
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.plotly-chart-settings-colors {
+    max-height: 180px;
+    overflow-y: auto;
 }
 
 [data-bs-theme="light"] .dialog-box-settings input:hover {

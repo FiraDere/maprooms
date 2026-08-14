@@ -488,7 +488,7 @@ def enso_alert_classification(proba, strength, oni, ssta):
 
     # APCC-style interpretation using available CPC ENSO products
     el_watch = (
-        ((ssta[1] >= 0.5) and (-0.5 <= oni <= 0.5)) or
+        ((ssta[-1] >= 0.5) and (-0.5 <= oni <= 0.5)) or
         (np.sum(pred_oni[:4] >= 0.5) >= 2) or
         (np.min(el_probs[:3]) >= 50)
     )
@@ -505,7 +505,7 @@ def enso_alert_classification(proba, strength, oni, ssta):
     )
 
     la_watch = (
-        ((ssta[1] <= -0.5) and (-0.5 <= oni <= 0.5)) or
+        ((ssta[-1] <= -0.5) and (-0.5 <= oni <= 0.5)) or
         (np.sum(pred_oni[:4] <= -0.5) >= 2) or
         (np.min(la_probs[:3]) >= 50)
     )

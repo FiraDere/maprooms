@@ -27,10 +27,11 @@ def climate_analysis_enso_alert_dial(params):
 
     month_anom = add_months(issue_date, -2)
     anom_df = read_enso_data_monthly(
-        'ersstv5_cpc',
+        'ersstv6_ncei',
         ['year', 'month', '"anom_nino3.4"'],
         start=month_anom
     )
+    # 'ersstv5_cpc',
 
     enso_alert = enso_alert_classification(
         fcst['probabilities'],
@@ -38,6 +39,7 @@ def climate_analysis_enso_alert_dial(params):
         oni_df['anom'].round(1).to_numpy(),
         anom_df['anom_nino3.4'].round(1).to_numpy()
     )
+
 
     img_png = draw_dial_image(
         enso_alert,

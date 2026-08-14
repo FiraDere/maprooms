@@ -288,6 +288,7 @@ function setAnalysisExpandModalDailyAnom(tempRes, contID) {
         .on('click.chartTsAnom', function() {
             downloadPlotlyImageJPG(contChart);
         });
+    setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
 function setProbaPlotContainer(data, container) {
@@ -449,6 +450,7 @@ function setAnalysisExpandModalProba(tempRes, contID) {
         .on('click.chartTsProba', function() {
             downloadPlotlyImageJPG(`${contChart}-plot`);
         });
+    // setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
 function setAnalysisExpandModalSeason(tempRes, contID) {

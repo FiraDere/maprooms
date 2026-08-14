@@ -8,7 +8,7 @@ plt.switch_backend('Agg')
 
 def plot_enso_probabilities(proba, figsize=(10, 6)):
     df = proba['table_proba']
-    issued_date = proba['issued_date'].strftime('%B %Y')
+    issued_date = proba['issued_date'].strftime('%d %B %Y')
 
     x = np.arange(len(df))
     width = 0.28
@@ -35,7 +35,7 @@ def plot_enso_probabilities(proba, figsize=(10, 6)):
     )
 
     ax.set_title(
-        f'NOAA CPC ENSO Probabilities (issued {issued_date})', fontsize=20, pad=22
+        f'NOAA CPC ENSO Probabilities (issued {issued_date})', fontsize=18, pad=22
     )
     ax.text(
         0.5,
@@ -73,7 +73,7 @@ def plot_enso_strength_probabilities(proba, figsize=(12, 7)):
     issue_date = proba['issued_date']
 
     issue_date = pd.to_datetime(issue_date)
-    issued_date = issue_date.strftime('%B %Y')
+    issued_date = issue_date.strftime('%d %B %Y')
 
     prob_cols = list(header_info.keys())
     for c in prob_cols:

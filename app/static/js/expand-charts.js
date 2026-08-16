@@ -125,7 +125,9 @@ function setAnalysisExpandModalAnom(tempRes, contID) {
     expandModalCharts(
         contID,
         expand_analysis_charts_anomaly,
-        tempRes
+        tempRes,
+        '',
+        anomalySignColorsModule
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -227,7 +229,9 @@ function setAnalysisExpandModalDailyAnom(tempRes, contID) {
     expandModalCharts(
         contID,
         expand_analysis_charts_anomaly,
-        tempRes
+        tempRes,
+        '',
+        anomalySignColorsModule
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -288,6 +292,7 @@ function setAnalysisExpandModalDailyAnom(tempRes, contID) {
         .on('click.chartTsAnom', function() {
             downloadPlotlyImageJPG(contChart);
         });
+
 }
 
 function setProbaPlotContainer(data, container) {
@@ -340,7 +345,8 @@ function setAnalysisExpandModalProba(tempRes, contID) {
     expandModalCharts(
         contID,
         expand_analysis_charts_proba,
-        tempRes
+        tempRes,
+        '-plot'
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -449,6 +455,7 @@ function setAnalysisExpandModalProba(tempRes, contID) {
         .on('click.chartTsProba', function() {
             downloadPlotlyImageJPG(`${contChart}-plot`);
         });
+
 }
 
 function setAnalysisExpandModalSeason(tempRes, contID) {
@@ -526,9 +533,7 @@ function setAnalysisExpandModalSeason(tempRes, contID) {
         .on('click.chartTsSeason', function() {
             downloadPlotlyImageJPG(contChart);
         });
-
-    // chart settings
-    setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
+    
 }
 
 function setAnalysisExpandModalEnso(tempRes, contID) {

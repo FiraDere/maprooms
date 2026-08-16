@@ -263,13 +263,21 @@ function disposeModalDialog(modal_id) {
     }
 }
 
-function expandModalCharts(container, callback_chart, time_res = null) {
+function expandModalCharts(container, callback_chart, time_res = null, plotElementSuffix = '', colorsModule = undefined) {
     const divChart = $(`#modal-chart-${container}`);
     divChart.empty();
     const contChart = `container-chart-${container}`;
     $('<div>').attr('id', contChart)
         .addClass('modal-expand-charts-plotly')
         .appendTo(divChart);
+
+    // Every modal-expand chart gets a working "Chart settings" gear button
+    // for free. Most charts plot straight into contChart; a few (e.g. the
+    // probability chart, which adds a side "Fitted Distribution" panel) plot
+    // into a differently-named sub-element - pass plotElementSuffix (e.g.
+    // '-plot') for those. Pass colorsModule (see expand-charts-settings.js)
+    // for a chart whose trace coloring isn't "1 trace = 1 flat color".
+    enablePlotlyChartSettings(container, `${contChart}${plotElementSuffix}`, undefined, colorsModule);
 
     const modalEl = document.getElementById(`modal-expand-${container}`);
     const drawChart = () => {

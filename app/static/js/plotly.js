@@ -226,6 +226,10 @@ function downloadPlotlyImageJPG(container) {
             print_layout.margin = { b: 100 };
         }
     }
+    // to make the title not cut off when downloading the image
+    if (plot_layout.title && plot_layout.title.text) {
+        print_layout.margin = deepMerge(print_layout.margin || {}, { t: 60 });
+    }
     const legend_color = {
         legend: {
             font: { color: 'black' },

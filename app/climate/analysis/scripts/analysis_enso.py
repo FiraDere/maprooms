@@ -27,11 +27,10 @@ def climate_analysis_enso_alert_dial(params):
 
     month_anom = add_months(issue_date, -2)
     anom_df = read_enso_data_monthly(
-        'ersstv6_ncei',
+        params['sstProduct'],
         ['year', 'month', '"anom_nino3.4"'],
         start=month_anom
     )
-    # 'ersstv5_cpc',
 
     enso_alert = enso_alert_classification(
         fcst['probabilities'],

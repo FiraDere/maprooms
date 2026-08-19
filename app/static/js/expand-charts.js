@@ -288,7 +288,7 @@ function setAnalysisExpandModalDailyAnom(tempRes, contID) {
         .on('click.chartTsAnom', function() {
             downloadPlotlyImageJPG(contChart);
         });
-    setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
+    // setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
 function setProbaPlotContainer(data, container) {

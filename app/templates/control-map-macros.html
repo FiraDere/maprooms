@@ -594,10 +594,25 @@
                 {% endfor %}
             </select>
         </div>
-        <div id="{{ tempRes }}-cumul-since-div" class="mt-2" style="display: none;">
-            <span>{{ pageText.cumul_since }}</span>
-            <select id="{{ tempRes }}-cumul-since-mon" class="form-select form-select2-nosearch w-auto align-middle" style="width: 120px;"></select>
-            <select id="{{ tempRes }}-cumul-since-dek" class="form-select form-select2-nosearch w-auto align-middle"></select>
+    </fieldset>
+    <!--  -->
+    <fieldset class="border border-secondary rounded-3">
+        <legend class="legend-label">{{ pageText.opt_dates.label }}</legend>
+        <div id="{{ tempRes }}-cumul-since-div" class="row gx-2 align-items-center">
+            <div class="col-sm-7 d-flex justify-content-end">
+                {{ pageText.opt_dates.cumul }}
+            </div>
+            <div id="{{ tempRes }}-start-cumul" class="col-sm-5" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Date">
+                <input id="{{ tempRes }}-start-cumul-calendar" type="text" class="form-control form-control-sm w-auto">
+            </div>
+        </div>
+        <div class="row gx-2 align-items-center">
+            <div id="{{ tempRes }}-dekad-date-label" class="col-sm-7 d-flex justify-content-end">
+                {{ pageText.opt_dates.dekad }}
+            </div>
+            <div id="{{ tempRes }}-map-date" class="col-sm-5" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Date">
+                <input id="{{ tempRes }}-map-date-calendar" type="text" class="form-control form-control-sm w-auto">
+            </div>
         </div>
     </fieldset>
 </div>

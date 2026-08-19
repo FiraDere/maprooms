@@ -476,3 +476,69 @@ function displayAgricultureAnalysisMap(time_res, options, map) {
 
     return request;
 }
+
+////////////
+
+function queryParamsClimateMonitoringMap(time_res) {
+    let query = new Object();
+    query.temporalRes = time_res;
+    query.dataset = DATA_SET.use;
+    query.map_variable = $(`#${time_res}-map-variable`).val();
+    query.variable = DATA_SET.variables[query.map_variable];
+
+    if (time_res === 'dekadal') {
+        if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(query.map_variable)) {
+            const start_dek = $(`#${time_res}-start-cumul-calendar`).val();
+            query.startDekad = formatDekadDate(start_dek);
+            query.minFrac = 1.0;
+        } else {
+            if (query.map_variable === 'anom_dek') {
+                query.anomaly = 'difference';
+            }
+            if (query.map_variable === 'anom_per_dek') {
+                query.anomaly = 'percentage';
+            }
+        }
+        const date = $(`#${time_res}-map-date-calendar`).val();
+        query.Date = formatDekadDate(date);
+    } else if (time_res === 'monthly') {
+        // 
+    } else if (time_res === 'seasonal') {
+        // 
+    } else {
+        return false;
+    }
+
+    const colorbar = colorbarGetData();
+    if (!colorbar) {
+        return false;
+    }
+    query.colorbar = colorbar;
+
+    return query;
+}
+
+function displayClimateMonitoringMap(time_res, options, map) {
+    const query = queryParamsClimateMonitoringMap(time_res);
+
+    if (!query) {
+        return false;
+    }
+
+    const endpoint = createEndpoint(
+        'climate_monitoring',
+        'climate_monitoring_map'
+    );
+
+    const request = ajaxLeafletMap(
+        endpoint,
+        query,
+        displayRasterImage,
+        options,
+        map
+    );
+
+    updateAnalysisMapDate(time_res, query, map);
+
+    return request;
+}

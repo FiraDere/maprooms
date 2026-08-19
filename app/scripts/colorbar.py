@@ -142,3 +142,23 @@ def matplotlib_invalid_colors(list_colors, transparent=False):
         return wcolors
     else:
         return None
+
+def check_invalid_colors(colorbar):
+    if colorbar['color_type'] == 'user':
+        user_col = matplotlib_invalid_colors(
+            colorbar['color_cbar']
+        )
+        if user_col is not None:
+            wrng_col = ', '.join(user_col)
+            msg = f'Matplotlib invalid colors: {wrng_col}'
+            return {'status': -1, 'message': msg}
+        if colorbar['color_add_ext']:
+            ext_col = matplotlib_invalid_colors(
+                colorbar['color_ext'],
+                transparent=True
+            )
+            if ext_col is not None:
+                wrng_col = ', '.join(ext_col)
+                msg = f'Matplotlib invalid colors extensions: {wrng_col}'
+                return {'status': -1, 'message': msg}
+    return {'status': 0}

@@ -1,5 +1,6 @@
 import os
 import yaml
+import json
 import numpy as np
 
 def load_yaml_file(file_path):
@@ -80,3 +81,23 @@ def remove_duplicates_list(x):
     # y = list(set(x))
     return y
 
+def parse_json_spatial_data(json_data, date_key):
+    jsd = json.loads(json_data)
+    if jsd['status'] == -1: return jsd
+    jsd = json.loads(jsd['data'])
+    lat = np.array(jsd['Latitude'])
+    lon = np.array(jsd['Longitude'])
+    data = np.array(jsd['Data'])
+    data = np.where(data == jsd['Missing'], np.nan, data)
+
+    return {
+        'status': 0,
+        'date': jsd[date_key],
+        'lon': lon,
+        'lat': lat,
+        'data': data,
+        'longname': jsd['VariableName'],
+        'units': jsd['VariableUnits'],
+        'varid': jsd['VariableVarId'],
+        'dimensions': jsd['Dimensions']
+    }

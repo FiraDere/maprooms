@@ -5,7 +5,11 @@ from flask import (
     session
 )
 from flask import current_app as app
+import json
 import config
+from threading import Lock
+
+from .scripts.monitoring_sp import climate_monitoring_sp_data
 
 climate_monitoring = Blueprint(
     'climate_monitoring',
@@ -14,6 +18,8 @@ climate_monitoring = Blueprint(
     static_folder='static',
     static_url_path='/static/climate_monitoring',
 )
+
+matplotlib_render_lock = Lock()
 
 dataUser = dict()
 @climate_monitoring.before_request
@@ -26,3 +32,12 @@ def before_request():
             dataUser = session['data']
         else:
             dataUser = {'uid': -1}
+
+@climate_monitoring.route('/climate_monitoring_map', methods=['POST'])
+def climate_monitoring_map():
+    params = request.get_json()
+    try:
+        map_data = climate_monitoring_sp_data(params)
+        return json.dumps(map_data)
+    except Exception as e:
+        return json.dumps({'status': -1, 'message': str(e)})

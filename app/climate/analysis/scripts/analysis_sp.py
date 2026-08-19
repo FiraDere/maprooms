@@ -9,55 +9,41 @@ from app.dst_api.scripts import (
     download_analysis_dailyanom
 )
 from app.scripts.imagepng import create_imagePng
-from app.scripts.colorbar import matplotlib_invalid_colors
+from app.scripts.colorbar import check_invalid_colors
+from app.scripts.util import parse_json_spatial_data
 
 def climate_analysis_sp_data(params):
-    if params['colorbar']['color_type'] == 'user':
-        user_col = matplotlib_invalid_colors(
-            params['colorbar']['color_cbar']
-        )
-        if user_col is not None:
-            wrng_col = ', '.join(user_col)
-            msg = f'Matplotlib invalid colors: {wrng_col}'
-            return {'status': -1, 'message': msg}
-        if params['colorbar']['color_add_ext']:
-            ext_col = matplotlib_invalid_colors(
-                params['colorbar']['color_ext'],
-                transparent=True
-            )
-            if ext_col is not None:
-                wrng_col = ', '.join(ext_col)
-                msg = f'Matplotlib invalid colors extensions: {wrng_col}'
-                return {'status': -1, 'message': msg}
+    check = check_invalid_colors(params['colorbar'])
+    if check['status'] == -1: return check
 
     if params['dailyAnalysis']:
         if params['mapType'] == 'climatology':
             params = _create_params_sp_clim(params)
             json_data = download_analysis_dailyclim(params)
-            data = _parse_json_spatial_data(json_data, 'Dates')
+            data = parse_json_spatial_data(json_data, 'Dates')
         elif params['mapType'] == 'rawdata':
             params = _create_params_sp_raw(params)
             json_data = download_analysis_dailydata(params)
-            data = _parse_json_spatial_data(json_data, 'Date')
+            data = parse_json_spatial_data(json_data, 'Date')
         elif params['mapType'] == 'anomaly':
             params = _create_params_sp_anom(params)
             json_data = download_analysis_dailyanom(params)
-            data = _parse_json_spatial_data(json_data, 'Date')
+            data = parse_json_spatial_data(json_data, 'Date')
         else:
             return {'status': -1, 'message': 'Unknown map data'}
     else:
         if params['mapType'] == 'climatology':
             params = _create_params_sp_clim(params)
             json_data = download_climdata(params)
-            data = _parse_json_spatial_data(json_data, 'Dates')
+            data = parse_json_spatial_data(json_data, 'Dates')
         elif params['mapType'] == 'rawdata':
             params = _create_params_sp_raw(params)
             json_data = download_rawdata(params)
-            data = _parse_json_spatial_data(json_data, 'Date')
+            data = parse_json_spatial_data(json_data, 'Date')
         elif params['mapType'] == 'anomaly':
             params = _create_params_sp_anom(params)
             json_data = download_analysis(params)
-            data = _parse_json_spatial_data(json_data, 'Date')
+            data = parse_json_spatial_data(json_data, 'Date')
         else:
             return {'status': -1, 'message': 'Unknown map data'}
 
@@ -129,24 +115,3 @@ def _create_params_sp_anom(params):
         'outFormat_0': 'JSON-Format'
     }
     return pars | params
-
-def _parse_json_spatial_data(json_data, date_key):
-    jsd = json.loads(json_data)
-    if jsd['status'] == -1: return jsd
-    jsd = json.loads(jsd['data'])
-    lat = np.array(jsd['Latitude'])
-    lon = np.array(jsd['Longitude'])
-    data = np.array(jsd['Data'])
-    data = np.where(data == jsd['Missing'], np.nan, data)
-
-    return {
-            'status': 0,
-            'date': jsd[date_key],
-            'lon': lon,
-            'lat': lat,
-            'data': data,
-            'longname': jsd['VariableName'],
-            'units': jsd['VariableUnits'],
-            'varid': jsd['VariableVarId'],
-            'dimensions': jsd['Dimensions']
-        }

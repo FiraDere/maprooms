@@ -3,7 +3,10 @@ import json
 import numpy as np
 from app.scripts._global import GLOBAL_CONFIG
 from app.scripts._colors import COLORS_MAPROOM
-from app.scripts.util import load_yaml_file
+from app.scripts.util import (
+    load_yaml_file,
+    parse_json_spatial_data
+)    
 
 ## to be changed
 def _get_layers_shapefiles():
@@ -40,7 +43,7 @@ def icon_climate_monitoring():
                   'gridded': True, 'webApp': True, 'finalOutput': False, 'climFunction': 'mean-stdev',
                   'fullYear': True, 'outFormat_0': 'JSON-Format', 'climDate': None, 'httpMethod': 'POST'}
         data = download_analysis(params)
-        data = _parse_json_spatial_data(data, 'Date')
+        data = parse_json_spatial_data(data, 'Date')
 
         shapefile = _get_layers_shapefiles()
         gdf = read_shapefiles(shapefile)
@@ -53,18 +56,3 @@ def icon_climate_monitoring():
                                 gdf_boundaries=gdf['shp'])
         cache.set('icon_climate_monitoring', cached_data)
     return cached_data
-
-def _parse_json_spatial_data(json_data, date_key):
-    jsd = json.loads(json_data)
-    if jsd['status'] == -1: return jsd
-    jsd = json.loads(jsd['data'])
-    lat = np.array(jsd['Latitude'])
-    lon = np.array(jsd['Longitude'])
-    data = np.array(jsd['Data'])
-    data = np.where(data == jsd['Missing'], np.nan, data)
-    # jsd['Dimensions']
-    return {'status': 0, 'date': jsd[date_key],
-            'lon': lon, 'lat': lat, 'data': data,
-            'longname': jsd['VariableName'],
-            'units': jsd['VariableUnits']
-            }

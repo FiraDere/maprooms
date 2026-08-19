@@ -1,5 +1,5 @@
 import numpy as np
-from app.scripts.colorbar import matplotlib_invalid_colors
+from app.scripts.colorbar import check_invalid_colors
 from app.scripts.imagepng import create_imagePng
 from app.dst_api.scripts import aggregate_seasonal_xrdata
 from app.misc.scripts.telecon_seasonal import (
@@ -11,23 +11,8 @@ from app.misc.scripts.telecon_proba import *
 from app.scripts._cache import cache, hash_pamars_telecon_map
 
 def climate_teleconnections_sp(params):
-    if params['colorbar']['color_type'] == 'user':
-        user_col = matplotlib_invalid_colors(
-            params['colorbar']['color_cbar']
-        )
-        if user_col is not None:
-            wrng_col = ', '.join(user_col)
-            msg = f'Matplotlib invalid colors: {wrng_col}'
-            return {'status': -1, 'message': msg}
-        if params['colorbar']['color_add_ext']:
-            ext_col = matplotlib_invalid_colors(
-                params['colorbar']['color_ext'],
-                transparent=True
-            )
-            if ext_col is not None:
-                wrng_col = ', '.join(ext_col)
-                msg = f'Matplotlib invalid colors extensions: {wrng_col}'
-                return {'status': -1, 'message': msg}
+    check = check_invalid_colors(params['colorbar'])
+    if check['status'] == -1: return check
 
     cache_key = hash_pamars_telecon_map(params)
     cached_data = cache.get(cache_key)

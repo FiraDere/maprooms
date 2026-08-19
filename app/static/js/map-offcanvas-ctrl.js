@@ -541,14 +541,19 @@ function setDecisionSupportVisibilityProba(tempRes, variable) {
 
 function setOffCanvasMapControlMonitoring(tempRes) {
     if (tempRes === 'dekadal') {
-        setMonitoringDekadSince(tempRes);
         refreshSpatialAverage(tempRes);
 
         $(`#${tempRes}-map-variable`)
             .off(`change.monitDekadal`)
             .on(`change.monitDekadal`, function() {
+                setMonitoringDekadalCalendar(tempRes, $(this).val());
                 setMonitoringDekadVisibility(tempRes, $(this).val());
             });
+        $(`#${tempRes}-map-variable`).trigger('change');
+    } else if (tempRes === 'monthly') {
+        // monthly
+    } else {
+        // seasonal
     }
 }
 
@@ -557,30 +562,61 @@ function setMonitoringDekadVisibility(tempRes, variable) {
         setVisibility(
             [`${tempRes}-cumul-since-div`], []
         );
+        $(`#${tempRes}-dekad-date-label`).text(DATE_LAB.todate);
     } else {
         setVisibility(
             [], [`${tempRes}-cumul-since-div`]
         );
+        $(`#${tempRes}-dekad-date-label`).text(DATE_LAB.dekad);
     }
 }
 
-function setMonitoringDekadSince(tempRes) {
-    const months = getListOfMonthsCalendar().long;
-    for (let m = 0; m < months.length; m++) {
-        $(`#${tempRes}-cumul-since-mon`).append(
-            $('<option>')
-            .text(months[m])
-            .val(m + 1)
+function setMonitoringDekadalCalendar(tempRes, variable) {
+    if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(variable)) {
+        const date_cov = getTempCoverageCalendar(
+            DATA_SET.use, tempRes, variable
         );
-    }
-    $(`#${tempRes}-cumul-since-mon`).val(DEKAD_SINCE.month);
+        let date_arr = date_cov.end.split('-');
+        date_arr[1] = String(DEKAD_SINCE.month).padStart(2, '0');
 
-    for (let d = 0; d < 3; d++) {
-        $(`#${tempRes}-cumul-since-dek`).append(
-            $('<option>')
-            .text(d + 1)
-            .val(d + 1)
+        const dk = DEKAD_SINCE.dekad.toString();
+        if (dk === '1') {
+            date_arr[2] = '01';
+        } else if (dk === '2') {
+            date_arr[2] = '11';
+        } else {
+            date_arr[2] = '21';
+        }
+
+        let date_start = new Date(date_arr.join('-'));
+        const date_end = new Date(date_cov.end);
+        if (date_end < date_start) {
+            date_start.setFullYear(date_start.getFullYear() - 1);
+        }
+        const date_disp = date_start.toISOString().split('T')[0];
+
+        setDateCalendar(
+            `${tempRes}-start-cumul`,
+            `${tempRes}-map-variable`,
+            DATA_SET.use,
+            tempRes,
+            dispDate = date_disp,
+            mapNavigation = true,
+            dispYear = false,
+            isStart = null,
+            ensoData = false
         );
     }
-    $(`#${tempRes}-cumul-since-dek`).val(DEKAD_SINCE.dekad);
+
+    setDateCalendar(
+        `${tempRes}-map-date`,
+        `${tempRes}-map-variable`,
+        DATA_SET.use,
+        tempRes,
+        dispDate = null,
+        mapNavigation = true,
+        dispYear = false,
+        isStart = null,
+        ensoData = false
+    );
 }

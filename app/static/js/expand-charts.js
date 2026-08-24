@@ -720,12 +720,20 @@ function setRainySeasonExpandModal(tempRes, chartType, contID) {
         'proba': expand_agri_rseason_charts_proba,
         'anom': expand_agri_rseason_charts_anom
     };
+    // the anomaly view colors each bar by sign (positive/negative), same
+    // as the general Anomaly chart - needs the sign-aware colors module,
+    // not the default one-color-per-trace picker
+    const colorsModule = {
+        'anom': anomalySignColorsModule
+    };
 
     showModalDialog(`modal-expand-${contID}`);
     expandModalCharts(
         contID,
         expandFunction[chartType],
-        tempRes
+        tempRes,
+        '',
+        colorsModule[chartType]
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -772,10 +780,15 @@ function setRainySeasonExpandModal(tempRes, chartType, contID) {
 
 function setCropSuitabilityExpandModal(tempRes, contID) {
     showModalDialog(`modal-expand-${contID}`);
+    // bars are colored from a fixed 6-step suitability-score palette
+    // (0-5) plus a "no data" gray, not one color per trace - needs the
+    // categorical colors module
     expandModalCharts(
         contID,
         expand_agri_cropsuit_charts,
-        tempRes
+        tempRes,
+        '',
+        categoricalMarkerColorsModule
     );
     purgePlotlyChartExpandModal(contID);
 

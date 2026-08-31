@@ -125,7 +125,9 @@ function setAnalysisExpandModalAnom(tempRes, contID) {
     expandModalCharts(
         contID,
         expand_analysis_charts_anomaly,
-        tempRes
+        tempRes,
+        '',
+        anomalySignColorsModule
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -227,7 +229,9 @@ function setAnalysisExpandModalDailyAnom(tempRes, contID) {
     expandModalCharts(
         contID,
         expand_analysis_charts_anomaly,
-        tempRes
+        tempRes,
+        '',
+        anomalySignColorsModule
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -288,6 +292,7 @@ function setAnalysisExpandModalDailyAnom(tempRes, contID) {
         .on('click.chartTsAnom', function() {
             downloadPlotlyImageJPG(contChart);
         });
+
     // setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
@@ -341,7 +346,8 @@ function setAnalysisExpandModalProba(tempRes, contID) {
     expandModalCharts(
         contID,
         expand_analysis_charts_proba,
-        tempRes
+        tempRes,
+        '-plot'
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -450,6 +456,7 @@ function setAnalysisExpandModalProba(tempRes, contID) {
         .on('click.chartTsProba', function() {
             downloadPlotlyImageJPG(`${contChart}-plot`);
         });
+
     // setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
@@ -528,9 +535,7 @@ function setAnalysisExpandModalSeason(tempRes, contID) {
         .on('click.chartTsSeason', function() {
             downloadPlotlyImageJPG(contChart);
         });
-
-    // chart settings
-    setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
+    
 }
 
 function setAnalysisExpandModalEnso(tempRes, contID) {
@@ -717,12 +722,20 @@ function setRainySeasonExpandModal(tempRes, chartType, contID) {
         'proba': expand_agri_rseason_charts_proba,
         'anom': expand_agri_rseason_charts_anom
     };
+    // the anomaly view colors each bar by sign (positive/negative), same
+    // as the general Anomaly chart - needs the sign-aware colors module,
+    // not the default one-color-per-trace picker
+    const colorsModule = {
+        'anom': anomalySignColorsModule
+    };
 
     showModalDialog(`modal-expand-${contID}`);
     expandModalCharts(
         contID,
         expandFunction[chartType],
-        tempRes
+        tempRes,
+        '',
+        colorsModule[chartType]
     );
     purgePlotlyChartExpandModal(contID);
 
@@ -769,10 +782,15 @@ function setRainySeasonExpandModal(tempRes, chartType, contID) {
 
 function setCropSuitabilityExpandModal(tempRes, contID) {
     showModalDialog(`modal-expand-${contID}`);
+    // bars are colored from a fixed 6-step suitability-score palette
+    // (0-5) plus a "no data" gray, not one color per trace - needs the
+    // categorical colors module
     expandModalCharts(
         contID,
         expand_agri_cropsuit_charts,
-        tempRes
+        tempRes,
+        '',
+        categoricalMarkerColorsModule
     );
     purgePlotlyChartExpandModal(contID);
 

@@ -62,6 +62,69 @@ var plotly_rangeslider = {
     bgcolor: 'transparent',
 };
 
+// Plotly always stacks a rangeslider-enabled x-axis as
+// ticks -> rangeslider -> title, with no layout option to reorder it, so
+// a custom x-axis title ends up below the slider instead of sitting right
+// under the tick labels like it would with no slider. This swaps the two
+// elements' vertical positions directly in the rendered SVG once Plotly
+// has laid them out, moving the title above the slider and the slider
+// down into the title's old spot - same total space, just reordered.
+function fixRangesliderTitlePosition(gd) {
+    const xaxis = gd && gd.layout && gd.layout.xaxis;
+    if (!xaxis || !xaxis.rangeslider || !xaxis.rangeslider.visible) {
+        return;
+    }
+    const titleText = xaxis.title && (
+        typeof xaxis.title === 'string' ? xaxis.title : xaxis.title.text
+    );
+    if (!titleText) {
+        return;
+    }
+
+    const sliderG = gd.querySelector('g.rangeslider-container');
+    const titleEl = gd.querySelector('g.g-xtitle text.xtitle');
+    if (!sliderG || !titleEl) {
+        return;
+    }
+
+    const transformMatch = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(
+        sliderG.getAttribute('transform') || ''
+    );
+    if (!transformMatch) {
+        return;
+    }
+    const sliderX = parseFloat(transformMatch[1]);
+    const sliderTop = parseFloat(transformMatch[2]);
+
+    const sliderBg = sliderG.querySelector('rect.rangeslider-bg');
+    const sliderHeight = sliderBg ? parseFloat(sliderBg.getAttribute('height')) : 0;
+
+    const titleBaseline = parseFloat(titleEl.getAttribute('y'));
+
+    // already above the slider - either it shipped that way or a previous
+    // call already fixed it. Skip so repeated calls (this runs on every
+    // afterplot/relayout: resize, theme toggle, rangeslider drag...) don't
+    // flip the two elements back and forth.
+    if (!Number.isFinite(titleBaseline) || titleBaseline <= sliderTop) {
+        return;
+    }
+
+    const fontSize = parseFloat(titleEl.style.fontSize)
+        || (xaxis.title.font && xaxis.title.font.size)
+        || 14;
+    const ascent = fontSize * 0.8;
+    const descent = fontSize * 0.2;
+    // small fixed gap between the title and the slider below it, instead
+    // of reusing Plotly's own (much larger) default title standoff
+    const gap = 6;
+
+    const newTitleBaseline = sliderTop + ascent;
+    titleEl.setAttribute('y', newTitleBaseline);
+    sliderG.setAttribute(
+        'transform', `translate(${sliderX},${newTitleBaseline + descent + gap})`
+    );
+}
+
 function setPlotlyColors() {
     const theme = $('html').attr('data-bs-theme');
     const layout = {
@@ -157,6 +220,22 @@ function setPlotlyThemeColors(container) {
     });
 }
 
+// the downloaded image always gets a white background (see print_layout
+// below), so a whitish title color would blend into it; treat anything
+// close enough to white as unreadable there and fall back to black,
+// while leaving any other user-chosen color untouched
+function isWhitishColor(color) {
+    const hex = plotlyColorInputValue(color, null);
+    if (!hex) {
+        return false;
+    }
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.85;
+}
+
 function downloadPlotlyImageJPG(container) {
     var gd = document.getElementById(container);
     const plot_layout = gd.layout;
@@ -225,6 +304,15 @@ function downloadPlotlyImageJPG(container) {
             };
             print_layout.margin = { b: 100 };
         }
+    }
+    // to make the title not cut off when downloading the image
+    if (plot_layout.title && plot_layout.title.text) {
+        print_layout.margin = deepMerge(print_layout.margin || {}, { t: 60 });
+    }
+    // avoid a whitish title vanishing into the download's white background;
+    // any other title color the user picked is kept as-is
+    if (isWhitishColor(plot_layout.title?.font?.color)) {
+        print_layout.title = { font: { color: 'black' } };
     }
     const legend_color = {
         legend: {

@@ -1,9 +1,12 @@
 ## preset colorbar list
-colorbar_color_list: [tim_colors, precipitation_1, tercile_enso, 
+colorbar_color_list: [
+                tim_colors, precipitation_1, precipitation_2,
+                tercile_enso, spi_colors, redwhiteblue_colors,
                 'rainbow', 'turbo', 'viridis', 'inferno',
                 'jet', 'plasma', 'magma', 'plasma',
                 'hsv', 'hot', 'cool', 'spring', 'summer',
-                'winter', 'autumn', 'copper', 'bone']
+                'winter', 'autumn', 'copper', 'bone'
+              ]
 
 ## colorbar extension
 colorbar_color_ext: ['transparent', 'gray']

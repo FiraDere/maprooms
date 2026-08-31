@@ -104,6 +104,19 @@ datasets:
                     units: °C
                     missval: -99
                     compute: False
+                et0:
+                    name: Dekadal reference evapotranspiration
+                    varid: et0
+                    lon: lon
+                    lat: lat
+                    time: time
+                    prec: float
+                    units: mm
+                    missval: -99
+                    compute: True
+                    function: sum
+                    input: daily
+                    minfrac: 1
             zarr_dir: /home/enacts/ENACTS_DATA/DATA/ZARR/ALL
             chunks:
                 time: 1000
@@ -149,6 +162,19 @@ datasets:
                     compute: True
                     function: mean
                     input: dekadal
+                    minfrac: 1
+                et0:
+                    name: Monthly reference evapotranspiration
+                    varid: et0
+                    lon: lon
+                    lat: lat
+                    time: time
+                    prec: float
+                    units: mm
+                    missval: -99
+                    compute: True
+                    function: sum
+                    input: daily
                     minfrac: 1
         seasonal:
             netcdf:

@@ -886,6 +886,8 @@ function preview_analysis_display_season(json, container) {
 function preview_analysis_enso_alert(tempRes, contID) {
     let query = new Object();
     query.theme = $('html').attr('data-bs-theme');
+    // query.sstProduct = 'ersstv5_cpc';
+    query.sstProduct = 'ersstv6_ncei';
     ajaxDisplayChart(
         '/climate_analysis_enso_alert',
         query,

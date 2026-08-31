@@ -10,12 +10,15 @@ from app.dst_api.scripts import (
     aggregate_climatology
 )
 from app.scripts.imagepng import create_imagePng
-from app.scripts.colorbar import matplotlib_invalid_colors
+from app.scripts.colorbar import check_invalid_colors
 from app.scripts._cache import cache, hash_params_rainy_season
 from app.misc.scripts.soilgrids_tawc import get_gyga_af_tawc
 from app.misc.scripts.extract_data import regrid2D_dataArray
 from app.misc.scripts.rainy_season import compute_rainy_season
-from app.scripts.util import load_yaml_file
+from app.scripts.util import (
+    load_yaml_file,
+    parse_json_spatial_data
+)
 from app.scripts._global import GLOBAL_CONFIG
 from app.dst_api.scripts import (
     download_analysis_dailydata,
@@ -24,23 +27,8 @@ from app.dst_api.scripts import (
 )
 
 def agriculture_analysis_sp_data(params):
-    if params['colorbar']['color_type'] == 'user':
-        user_col = matplotlib_invalid_colors(
-            params['colorbar']['color_cbar']
-        )
-        if user_col is not None:
-            wrng_col = ', '.join(user_col)
-            msg = f'Matplotlib invalid colors: {wrng_col}'
-            return {'status': -1, 'message': msg}
-        if params['colorbar']['color_add_ext']:
-            ext_col = matplotlib_invalid_colors(
-                params['colorbar']['color_ext'],
-                transparent=True
-            )
-            if ext_col is not None:
-                wrng_col = ', '.join(ext_col)
-                msg = f'Matplotlib invalid colors extensions: {wrng_col}'
-                return {'status': -1, 'message': msg}
+    check = check_invalid_colors(params['colorbar'])
+    if check['status'] == -1: return check
 
     if params['mapPage'] in ['rainy-season', 'decision-support']:
         ret = _get_rainy_season_data(params)
@@ -195,7 +183,7 @@ def _get_crop_suitability_data(params):
     else:
         params = _create_params_dailyanalysis(params)
         json_data = download_analysis_dailydata(params)
-        data = _parse_json_spatial_data(json_data, 'Date')
+        data = parse_json_spatial_data(json_data, 'Date')
         return {'status': 0, 'data': data}
 
 def _create_params_dailyanalysis(params):
@@ -220,26 +208,6 @@ def _create_params_dailyanalysis(params):
         'httpMethod': 'POST'
     }
     return pars | params
-
-def _parse_json_spatial_data(json_data, date_key):
-    jsd = json.loads(json_data)
-    if jsd['status'] == -1: return jsd
-    jsd = json.loads(jsd['data'])
-    lat = np.array(jsd['Latitude'])
-    lon = np.array(jsd['Longitude'])
-    data = np.array(jsd['Data'])
-    data = np.where(data == jsd['Missing'], np.nan, data)
-    return {
-            'status': 0,
-            'date': jsd[date_key],
-            'lon': lon,
-            'lat': lat,
-            'data': data,
-            'longname': jsd['VariableName'],
-            'units': jsd['VariableUnits'],
-            'varid': jsd['VariableVarId'],
-            'dimensions': jsd['Dimensions']
-        }
 
 def _get_proba_info(params):
     proba_thres = 0

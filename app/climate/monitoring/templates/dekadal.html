@@ -42,5 +42,8 @@
 <script>
 const DATA_SET = JSON.parse('{{ pageText.dataset | tojson }}');
 </script>
+<script>
+const DATE_LAB = JSON.parse('{{ pageText.opt_dates | tojson }}');
+</script>
 <script type="text/javascript" src="{{ url_for('climate_monitoring.static', filename='js/dekadal.js') }}"></script>
 {% endblock %}

@@ -293,6 +293,7 @@ function setAnalysisExpandModalDailyAnom(tempRes, contID) {
             downloadPlotlyImageJPG(contChart);
         });
 
+    // setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
 function setProbaPlotContainer(data, container) {
@@ -456,6 +457,7 @@ function setAnalysisExpandModalProba(tempRes, contID) {
             downloadPlotlyImageJPG(`${contChart}-plot`);
         });
 
+    // setPlotlyChartSettingsDialog(contID, contChart, test_climate_analysis_season_daily);
 }
 
 function setAnalysisExpandModalSeason(tempRes, contID) {

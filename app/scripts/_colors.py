@@ -21,6 +21,24 @@ COLORS_MAPROOM['precipitation_1'] = {
     'ext': ['white', 'pink'],
 }
 
+COLORS_MAPROOM['precipitation_2'] = {
+    'colors': [
+        '#FFFFFF00',
+        '#396892',
+        '#358ADB',
+        '#83E01D',
+        '#D8D71D',
+        '#C08A27',
+        '#D55423',
+        '#C3272B',
+        '#953130',
+        '#963295',
+        '#8840CF',
+        '#7E6AB1',
+    ],
+    'ext': ['#FFFFFF00', '#7E6AB1'],
+}
+
 COLORS_MAPROOM['tim_colors'] = {
     'colors': [
         '#00008F',
@@ -111,4 +129,32 @@ COLORS_MAPROOM['tercile_enso'] = {
         '#b03060',
     ],
     'ext': ['#ffffff', '#1d001d'],
+}
+
+COLORS_MAPROOM['spi_colors'] = {
+    'colors': [
+        '#B12126',
+        '#CF661C',
+        '#F8DDB3',
+        '#FEFFFF',
+        '#FEFFFF',
+        '#99F99C',
+        '#3DB272',
+        '#157040',
+    ],
+    'ext': ['#420305', '#033d1f'],
+}
+
+COLORS_MAPROOM['redwhiteblue_colors'] = {
+    'colors': [
+        '#8B2323',
+        '#BD5B1C',
+        '#F28E43',
+        '#FCE9DA',
+        '#EBF3DE',
+        '#BACCE4',
+        '#608CC4',
+        '#3B638F',
+    ],
+    'ext': ['#8B2323', '#3B638F'],
 }

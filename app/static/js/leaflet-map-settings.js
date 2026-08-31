@@ -476,3 +476,104 @@ function displayAgricultureAnalysisMap(time_res, options, map) {
 
     return request;
 }
+
+////////////
+
+function queryParamsClimateMonitoringMap(time_res) {
+    let query = new Object();
+    query.temporalRes = time_res;
+    query.dataset = DATA_SET.use;
+    query.map_variable = $(`#${time_res}-map-variable`).val();
+    query.variable = DATA_SET.variables[query.map_variable];
+
+    if (time_res === 'dekadal') {
+        const date = $(`#${time_res}-map-date-calendar`).val();
+        query.Date = formatDekadDate(date);
+
+        if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(query.map_variable)) {
+            const start_dek = $(`#${time_res}-start-cumul-calendar`).val();
+
+            const date1 = new Date(start_dek);
+            const date2 = new Date(date);
+            if (date1 >= date2) {
+                flashMessage('The start dekad must be earlier than the current target dekad', 'error');
+                return false;
+            }
+            const diff_dek = date2 - date1;
+            const one_year_ms = 365 * 24 * 60 * 60 * 1000;
+            if (diff_dek > one_year_ms) {
+                flashMessage('The difference between start dekad and the current target dekad must be less than one year', 'error');
+                return false;
+            }
+
+            query.startDekad = formatDekadDate(start_dek);
+            query.minFrac = 1.0;
+        } else {
+            if (query.map_variable === 'anom_dek') {
+                query.anomaly = 'difference';
+            }
+            if (query.map_variable === 'anom_per_dek') {
+                query.anomaly = 'percentage';
+            }
+            if (query.map_variable === 'spi_dek') {
+                query.distribution = 'gamma';
+                query.timeScale = 1;
+            }
+        }
+    } else if (time_res === 'monthly') {
+        // 
+    } else if (time_res === 'seasonal') {
+        // 
+    } else {
+        return false;
+    }
+
+    const colorbar = colorbarGetData();
+    if (!colorbar) {
+        return false;
+    }
+    query.colorbar = colorbar;
+
+    if (query.map_variable === 'spi_dek') {
+        if (colorbar.break_type == 'default') {
+            query.colorbar.break_type = 'user';
+            query.colorbar.break_cbar = [-2, -1.5, -1, 1, 1.5, 2];
+        }
+        if (colorbar.color_type == 'preset') {
+            query.colorbar.color_cbar = 'spi_colors';
+            $('#colorbar-color-preset-select').val('spi_colors');
+            this_colors = 'spi_colors';
+        }
+    } else {
+        if (colorbar.color_type == 'preset') {
+            $('#colorbar-color-preset-select').val('tim_colors');
+        }
+    }
+
+    return query;
+}
+
+function displayClimateMonitoringMap(time_res, options, map) {
+    const query = queryParamsClimateMonitoringMap(time_res);
+
+    if (!query) {
+        return false;
+    }
+
+    const endpoint = createEndpoint(
+        'climate_monitoring',
+        'climate_monitoring_map'
+    );
+
+    const request = ajaxLeafletMap(
+        endpoint,
+        query,
+        displayRasterImage,
+        options,
+        map
+    );
+
+    updateAnalysisMapDate(time_res, query, map);
+
+    return request;
+}

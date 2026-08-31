@@ -35,7 +35,7 @@ description:
         <p>Les cartes de SPI présentent l'index de précipitations standard de la décade la plus récente (en utilisant 1981 à la dernière année complète comme base de référence). Le SPI (McKee 1993) représente la déviation à laquelle un événement arrive, par rapport à la moyenne climatologique. Cette déviation est représentée en nombre d'écarts-types. Pour calculer l'indice, une série temporelle à long terme sur de nombreuses décades est utilisée pour estimer la fonction de densité de probabilités. Les analyses montrées ici sont basées sur la distribution de Pearson de Type III (c'est à dire 3 paramètres gamma) comme il est suggéré par Guttman (1999). La distribution de probabilités accumulées associée est ensuite estimée et transformée en une distribution normale. Le résultat est le SPI, qui peut être interprété comme une probabilité utilisant une distribution normale standard (c'est à dire que l'utilisateur peut s'attendre à ce que le SPI tombe à l'intérieur d'une marge d'un écart-type 68% du temps, et de deux écarts-types 95% du temps etc...).</p>
 
 dataset:
-    use: ALL
+    use: MON
     variables:
         rain_dek: [precip]
         anom_dek: [precip]
@@ -72,7 +72,16 @@ variables:
             en: Standard Precipitation Index (SPI)
             fr: Indice de Précipitations Standardisé (SPI)
 
-cumul_since:
-    en: Cumulative rainfall since
-    fr: Cumul des précipitations depuis
-
+opt_dates:
+    label:
+        en: Date
+        fr: Date
+    dekad:
+        en: Dekad of
+        fr: Décade du
+    cumul:
+        en: Cumulative rainfall from
+        fr: Cumul des précipitations du
+    todate:
+        en: to
+        fr: au

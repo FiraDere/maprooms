@@ -185,10 +185,11 @@ function setDateCalendar(
             jcalendarHover();
         },
         onclose: function(el) {
-            const this_date = $(el).val();
+            let this_date = $(el).val();
             if (tempRes === 'dekadal') {
                 const dek_date = calendarFormatDekad(this_date);
                 $(el).val(dek_date);
+                this_date = dek_date;
             }
 
             if (mapNavigation) {
@@ -200,7 +201,6 @@ function setDateCalendar(
                     $(`#${tempRes}-season-months`).text(seas_mon);
                 }
 
-                // const this_date = calendar.getValue();
                 $('#input-time-navigation')
                     .val(this_date.slice(0, cl_slice));
             }

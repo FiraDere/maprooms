@@ -573,28 +573,7 @@ function setMonitoringDekadVisibility(tempRes, variable) {
 
 function setMonitoringDekadalCalendar(tempRes, variable) {
     if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(variable)) {
-        const date_cov = getTempCoverageCalendar(
-            DATA_SET.use, tempRes, variable
-        );
-        let date_arr = date_cov.end.split('-');
-        date_arr[1] = String(DEKAD_SINCE.month).padStart(2, '0');
-
-        const dk = DEKAD_SINCE.dekad.toString();
-        if (dk === '1') {
-            date_arr[2] = '01';
-        } else if (dk === '2') {
-            date_arr[2] = '11';
-        } else {
-            date_arr[2] = '21';
-        }
-
-        let date_start = new Date(date_arr.join('-'));
-        const date_end = new Date(date_cov.end);
-        if (date_end < date_start) {
-            date_start.setFullYear(date_start.getFullYear() - 1);
-        }
-        const date_disp = date_start.toISOString().split('T')[0];
-
+        const date_disp = getStartDekadCumul(tempRes, variable);
         setDateCalendar(
             `${tempRes}-start-cumul`,
             `${tempRes}-map-variable`,

@@ -1224,7 +1224,12 @@ function checkQueryPointOutside(query, time_res) {
     const point = query.pointsList[0];
     const lon = Number(point.lon);
     const lat = Number(point.lat);
-    const p = query.variable;
+    let p;
+    if ('map_variable' in query) {
+        p = query.map_variable;
+    } else {
+        p = query.variable;
+    }
     const d = query.dataset;
     const v = DATA_SET.variables[p][0];
     const bbox = DATA_INFO[d][time_res][v].spatial_coverage;

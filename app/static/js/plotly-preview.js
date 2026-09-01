@@ -27,6 +27,12 @@ function preview_cropsuitability_display_charts(tempRes) {
     preview_cropsuitability_charts_series(tempRes, 'div-chart-cropsuit');
 }
 
+function preview_monitoring_display_charts(tempRes) {
+    preview_analysis_charts_rawdata(tempRes, 'div-chart-raw');
+    preview_analysis_charts_cumul(tempRes, 'div-chart-cumul');
+    preview_analysis_charts_anomaly(tempRes, 'div-chart-anom');
+}
+
 ///////////////////
 
 function analysis_query_format_date(date, temp_res) {
@@ -72,7 +78,14 @@ function preview_analysis_query_anomaly(tempRes) {
 
     query.temporalRes = tempRes;
     query.dataset = DATA_SET.use;
-    query.variable = $(`#${tempRes}-map-variable`).val();
+    query.map_variable = $(`#${tempRes}-map-variable`).val();
+    if (URL_ARGS.component === 'monitoring') {
+        // for dekadal only now, change for other tempRes
+        query.variable = DATA_SET.variables[query.map_variable][0];
+    } else {
+        query.variable = query.map_variable;
+    }
+
     query.anomaly = 'difference';
     query.startYear = BASE_PERIOD.start_year;
     query.endYear = BASE_PERIOD.end_year;
@@ -114,7 +127,7 @@ function preview_analysis_query_anomaly(tempRes) {
     }
 
     const dates = preview_analysis_query_temporal(
-        query.dataset, tempRes, query.variable, ts_len
+        query.dataset, tempRes, query.map_variable, ts_len
     );
 
     // check if seasParams has not set yet
@@ -248,9 +261,16 @@ function preview_analysis_query_rawdata(tempRes) {
 
     query.temporalRes = tempRes;
     query.dataset = DATA_SET.use;
-    query.variable = $(`#${tempRes}-map-variable`).val();
+    query.map_variable = $(`#${tempRes}-map-variable`).val();
+    if (URL_ARGS.component === 'monitoring') {
+        // for dekadal only now, change for other tempRes
+        query.variable = DATA_SET.variables[query.map_variable][0];
+    } else {
+        query.variable = query.map_variable;
+    }
+
     const dates = preview_analysis_query_temporal(
-        query.dataset, tempRes, query.variable, 5
+        query.dataset, tempRes, query.map_variable, 5
     );
 
     return Object.assign({}, query, dates);
@@ -1701,4 +1721,203 @@ function preview_cropsuitability_display_series(json, container) {
     );
 
     setPlotlyThemeColors(container);
+}
+
+///////
+
+function preview_analysis_query_cumul(tempRes) {
+    let query = queryParamsSpatialAverage();
+    if (!query) {
+        return query;
+    }
+
+    query.temporalRes = tempRes;
+    query.dataset = DATA_SET.use;
+    query.map_variable = $(`#${tempRes}-map-variable`).val();
+    query.variable = DATA_SET.variables[query.map_variable][0];
+
+    const date = $(`#${tempRes}-map-date-calendar`).val();
+    query.Date = formatDekadDate(date);
+    const start_dek = getStartDekadCumul(tempRes, query.map_variable);
+    if (!checkDatesDekadCumul(start_dek, date)) {
+        return false;
+    }
+    query.startDekad = formatDekadDate(start_dek);
+
+    return query;
+}
+
+function preview_analysis_charts_cumul(tempRes, contID) {
+    const query = preview_analysis_query_cumul(tempRes);
+    if (!query) {
+        return false;
+    }
+    if (checkQueryPointOutside(query, tempRes)) {
+        flashMessage(JS_TEXT.point_outside, 'error');
+        return false;
+    }
+
+    ajaxDisplayChart(
+        '/climate_monitoring_cumul',
+        query,
+        preview_analysis_display_cumul,
+        contID
+    );
+}
+
+function preview_analysis_display_cumul(json, container) {
+    const divCont = $(`#${container}`);
+    divCont.empty();
+    const theme = $('html').attr('data-bs-theme');
+
+    // const percentileLegend = {
+    //     x: [null],
+    //     y: [null],
+    //     type: "scatter",
+    //     mode: "markers",
+
+    //     marker: {
+    //         color: "gray",
+    //         size: 12,
+    //         symbol: "square"
+    //     },
+
+    //     name: "5th–95th Percentile",
+    //     hoverinfo: "skip"
+    // };
+
+    const shapes = [];
+    for (let j = 0; j < json.time.length - 1; j++) {
+        shapes.push({
+            type: 'rect',
+
+            xref: 'x',
+            yref: 'y',
+
+            x0: json.time[j],
+            x1: json.time[j + 1],
+
+            y0: json.values[2][j],
+            y1: json.values[3][j],
+
+            fillcolor: 'gray',
+            line: {
+                color: 'gray',
+                width: 1
+            },
+
+            layer: 'below'
+        });
+    }
+
+    const data = [
+        // percentileLegend,
+        {
+            x: json.time,
+            y: json.values[0],
+            name: 'Cumulative Rainfall',
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                color: 'red',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        },
+        {
+            x: json.time,
+            y: json.values[1],
+            name: 'Climatological Mean',
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                color: 'blue',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        },
+        {
+            x: json.time,
+            y: json.values[2],
+            name: '5th Percentile',
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                shape: 'hv',
+                color: 'gray',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        },
+        {
+            x: json.time,
+            y: json.values[3],
+            name: '95th Percentile',
+            units: 'mm',
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                shape: 'hv',
+                color: 'gray',
+                width: 4
+            },
+            hovertemplate: '%{data.name}: %{y:.1f} %{data.units} <extra></extra>'
+        }
+    ];
+
+    let layout = {
+        xaxis: {
+            type: 'date',
+            showgrid: true,
+            gridwidth: 0.5,
+            griddash: 'dot',
+            gridcolor: 'lightgray',
+            showline: true,
+            linecolor: plotly_themecolors[theme].fontcolor,
+            unifiedhovertitle: {
+                text: 'Dekad: %{x|%d %b %Y}'
+            }
+        },
+        yaxis: {
+            range: json.yrange,
+            tickvals: json.yticks,
+            showgrid: true,
+            gridwidth: 0.5,
+            griddash: 'dot',
+            gridcolor: 'lightgray',
+            showline: true,
+            linecolor: plotly_themecolors[theme].fontcolor
+        },
+        shapes: shapes,
+        showlegend: false,
+        hovermode: 'x unified',
+        hoverlabel: hoverlabelColors(theme)
+    };
+
+    layout.margin = { t: 10, b: 30, l: 50, r: 10 };
+    layout = deepMerge(setPlotlyColors(), layout);
+    layout = deepMerge(preview_layout, layout);
+
+    const config = {
+        displayModeBar: false,
+        responsive: true
+    };
+
+    purgePlotlyChart(container);
+    Plotly.newPlot(container, data, layout, config);
+    setPlotlyThemeColors(container);
+
+    $('#btn-theme-toggle').on('click', () => {
+        const thm = $('html').attr('data-bs-theme');
+        const update = {
+            'xaxis.linecolor': plotly_themecolors[thm].fontcolor,
+            'yaxis.linecolor': plotly_themecolors[thm].fontcolor,
+            'hoverlabel.font.color': plotly_themecolors[thm].fontcolor,
+            'hoverlabel.bgcolor': plotly_themecolors[thm].bgcolor
+        };
+        Plotly.relayout(container, update);
+    });
 }

@@ -110,6 +110,47 @@ function initiDialogBoxSelect2(selector, controlSelector) {
     });
 }
 
+function checkDatesDekadCumul(start_dek, end_dek) {
+    const date1 = new Date(start_dek);
+    const date2 = new Date(end_dek);
+    if (date1 >= date2) {
+        flashMessage('The start dekad must be earlier than the current target dekad', 'error');
+        return false;
+    }
+    const diff_dek = date2 - date1;
+    const one_year_ms = 365 * 24 * 60 * 60 * 1000;
+    if (diff_dek > one_year_ms) {
+        flashMessage('The difference between start dekad and the current target dekad must be less than one year', 'error');
+        return false;
+    }
+
+    return true;
+}
+
+function getStartDekadCumul(tempRes, variable) {
+    const date_cov = getTempCoverageCalendar(
+        DATA_SET.use, tempRes, variable
+    );
+    let date_arr = date_cov.end.split('-');
+    date_arr[1] = String(DEKAD_SINCE.month).padStart(2, '0');
+
+    const dk = DEKAD_SINCE.dekad.toString();
+    if (dk === '1') {
+        date_arr[2] = '01';
+    } else if (dk === '2') {
+        date_arr[2] = '11';
+    } else {
+        date_arr[2] = '21';
+    }
+
+    let date_start = new Date(date_arr.join('-'));
+    const date_end = new Date(date_cov.end);
+    if (date_end < date_start) {
+        date_start.setFullYear(date_start.getFullYear() - 1);
+    }
+    return date_start.toISOString().split('T')[0];
+}
+
 //////////////
 
 function ensoDatasetTempCoverage(dataset) {

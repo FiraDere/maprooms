@@ -493,19 +493,9 @@ function queryParamsClimateMonitoringMap(time_res) {
         if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(query.map_variable)) {
             const start_dek = $(`#${time_res}-start-cumul-calendar`).val();
 
-            const date1 = new Date(start_dek);
-            const date2 = new Date(date);
-            if (date1 >= date2) {
-                flashMessage('The start dekad must be earlier than the current target dekad', 'error');
+            if (!checkDatesDekadCumul(start_dek, date)) {
                 return false;
             }
-            const diff_dek = date2 - date1;
-            const one_year_ms = 365 * 24 * 60 * 60 * 1000;
-            if (diff_dek > one_year_ms) {
-                flashMessage('The difference between start dekad and the current target dekad must be less than one year', 'error');
-                return false;
-            }
-
             query.startDekad = formatDekadDate(start_dek);
             query.minFrac = 1.0;
         } else {

@@ -16,8 +16,6 @@ from app.scripts.imagepng import create_imagePng
 
 def climate_monitoring_sp_data(params):
     check = check_invalid_colors(params['colorbar'])
-    print(params)
-
     if check['status'] == -1: return check
 
     if params['temporalRes'] == 'dekadal':

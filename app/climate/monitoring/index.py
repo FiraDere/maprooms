@@ -10,6 +10,7 @@ import config
 from threading import Lock
 
 from .scripts.monitoring_sp import climate_monitoring_sp_data
+from .scripts.monitoring_ts import climate_monitoring_ts_cumul
 
 climate_monitoring = Blueprint(
     'climate_monitoring',
@@ -39,5 +40,14 @@ def climate_monitoring_map():
     try:
         map_data = climate_monitoring_sp_data(params)
         return json.dumps(map_data)
+    except Exception as e:
+        return json.dumps({'status': -1, 'message': str(e)})
+
+@climate_monitoring.route('/climate_monitoring_cumul', methods=['POST'])
+def climate_monitoring_cumul():
+    params = request.get_json()
+    try:
+        cumul_data = climate_monitoring_ts_cumul(params)
+        return json.dumps(cumul_data)
     except Exception as e:
         return json.dumps({'status': -1, 'message': str(e)})

@@ -14,6 +14,31 @@ def climate_teleconnections_sp(params):
     check = check_invalid_colors(params['colorbar'])
     if check['status'] == -1: return check
 
+    data = get_climate_teleconnections_sp(params)
+    if data['status'] == -1: return data
+
+    if params['colorbar']['color_type'] == 'preset':
+        map_png = create_imagePng(
+            data,
+            breaks=params['colorbar']['break_cbar'],
+            color_name=params['colorbar']['color_cbar'],
+            colors_ext=params['colorbar']['color_ext']
+        )
+    else:
+        map_png = create_imagePng(
+            data,
+            breaks=params['colorbar']['break_cbar'],
+            colors=params['colorbar']['color_cbar'],
+            colors_ext=params['colorbar']['color_ext']
+        )
+
+    map_png['date'] = data['proba']
+    # map_png['ckeys']['title'] = f"{data['longname']} ({data['units']})"
+    map_png['ckeys']['title'] = f"{data['longname']}: {data['proba']}"
+
+    return {'status': 0, 'data': map_png}
+
+def get_climate_teleconnections_sp(params):
     cache_key = hash_pamars_telecon_map(params)
     cached_data = cache.get(cache_key)
     if cached_data is None:
@@ -22,26 +47,7 @@ def climate_teleconnections_sp(params):
             return cached_data
         cache.set(cache_key, cached_data)
 
-    if params['colorbar']['color_type'] == 'preset':
-        map_png = create_imagePng(
-            cached_data,
-            breaks=params['colorbar']['break_cbar'],
-            color_name=params['colorbar']['color_cbar'],
-            colors_ext=params['colorbar']['color_ext']
-        )
-    else:
-        map_png = create_imagePng(
-            cached_data,
-            breaks=params['colorbar']['break_cbar'],
-            colors=params['colorbar']['color_cbar'],
-            colors_ext=params['colorbar']['color_ext']
-        )
-
-    map_png['date'] = cached_data['proba']
-    # map_png['ckeys']['title'] = f"{cached_data['longname']} ({cached_data['units']})"
-    map_png['ckeys']['title'] = f"{cached_data['longname']}: {cached_data['proba']}"
-
-    return {'status': 0, 'data': map_png}
+    return cached_data
 
 def _conditional_probability_sp(params):
     seas = aggregate_seasonal_xrdata(params)

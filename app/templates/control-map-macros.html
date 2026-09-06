@@ -598,6 +598,7 @@
     <!--  -->
     <fieldset class="border border-secondary rounded-3">
         <legend class="legend-label">{{ pageText.opt_dates.label }}</legend>
+        {% if tempRes == 'dekadal' %}
         <div id="{{ tempRes }}-cumul-since-div" class="row gx-2 align-items-center">
             <div class="col-sm-7 d-flex justify-content-end">
                 {{ pageText.opt_dates.cumul }}
@@ -606,7 +607,7 @@
                 <input id="{{ tempRes }}-start-cumul-calendar" type="text" class="form-control form-control-sm w-auto">
             </div>
         </div>
-        <div class="row gx-2 align-items-center">
+        <div class="row gx-2 mt-1 align-items-center">
             <div id="{{ tempRes }}-dekad-date-label" class="col-sm-7 d-flex justify-content-end">
                 {{ pageText.opt_dates.dekad }}
             </div>
@@ -614,6 +615,57 @@
                 <input id="{{ tempRes }}-map-date-calendar" type="text" class="form-control form-control-sm w-auto">
             </div>
         </div>
+        {% endif %}
+        <!--  -->
+        {% if tempRes == 'monthly' %}
+        <div class="row gx-2 align-items-center">
+            <div class="col-sm-6 d-flex justify-content-end">
+                {{ pageText.opt_dates.month }}
+            </div>
+            <div id="{{ tempRes }}-map-date" class="col-sm-4" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Date">
+                <input id="{{ tempRes }}-map-date-calendar" type="text" class="form-control form-control-sm w-auto">
+            </div>
+        </div>
+        {% endif %}
+        <!--  -->
+        {% if tempRes == 'seasonal' %}
+        <div id="{{ tempRes }}-map-date-div" class="container-fluid" style="display: none;">
+            <div class="row gx-1">
+                <div class="col-sm-6">
+                    {{ pageText.opt_dates.start }}
+                </div>
+                <div class="col-sm-4">
+                    {{ pageText.opt_dates.length }}
+                </div>
+            </div>
+            <div class="row gx-1">
+                <div id="{{ tempRes }}-map-date" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Date" class="col-sm-6">
+                    <input id="{{ tempRes }}-map-date-calendar" type="text" class="form-control">
+                </div>
+                <div id="div-{{ tempRes }}-map-date-length" class="col-sm-4">
+                    <select id="{{ tempRes }}-map-date-length" class="form-select form-select2-nosearch"></select>
+                </div>
+            </div>
+            <div id="{{ tempRes }}-season-months" class="d-flex justify-content-center">
+            </div>
+        </div>
+        <!--  -->
+        <div id="{{ tempRes }}-time-scale-div" class="container-fluid" style="display: none;">
+            <div class="row gx-1 align-items-center">
+                <div class="col-sm-6 d-flex justify-content-end">
+                    {{ pageText.opt_dates.time_scale }}
+                </div>
+                <div class="col-sm-1">
+                    <select id="{{ tempRes }}-spi-time-scale" class="form-select form-select2-nosearch"></select>
+                </div>
+                <div class="col-sm-4 ms-2 d-flex justify-content-start">
+                    -{{ pageText.opt_dates.months }}
+                </div>
+            </div>
+        </div>
+        <!--  -->
+        <input type="hidden" id="{{ tempRes }}-map-type" value="rawdata">
+        {% endif %}
     </fieldset>
 </div>
 {% endmacro %}

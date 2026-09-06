@@ -13,67 +13,30 @@ from app.dst_api.scripts import (
 from app.scripts.colorbar import check_invalid_colors
 from app.scripts.util import parse_json_spatial_data
 from app.scripts.imagepng import create_imagePng
+from app.scripts.util import pretty
 
 def climate_monitoring_sp_data(params):
     check = check_invalid_colors(params['colorbar'])
     if check['status'] == -1: return check
 
-    if params['temporalRes'] == 'dekadal':
-        if params['map_variable'] == 'rain_dek':
-            params = _create_params_sp_dekad(params)
-            json_data = download_rawdata(params)
-            data = parse_json_spatial_data(json_data, 'Date')
-        elif params['map_variable'] in ['anom_dek', 'anom_per_dek']:
-            params = _create_params_sp_dkanom(params)
-            json_data = download_analysis(params)
-            data = parse_json_spatial_data(json_data, 'Date')
-        elif params['map_variable'] == 'spi_dek':
-            params = _create_params_spi_dek(params)
-            json_data = download_analysis(params)
-            data = parse_json_spatial_data(json_data, 'Date')
-        elif params['map_variable'] == 'rain_cumul':
-            cumul, _ = _get_cumul_zarr_data(params)
-            data = _get_cumul_spatial_data(
-                cumul, cumul.values, params,
-                'Cumulative Rainfall',
-                'mm', 'rain_cumul'
-            )
-        elif params['map_variable'] == 'anom_cumul':
-            cumul, mean = _get_cumul_zarr_data(params)
-            data = _get_cumul_spatial_data(
-                cumul, (cumul - mean).values, params,
-                'Cumulative Rainfall Anomaly',
-                'mm', 'anom_cumul'
-            )
-        elif params['map_variable'] == 'anom_per_cumul':
-            cumul, mean = _get_cumul_zarr_data(params)
-            miss = cumul.isnull()
-            mask = mean < 10e-5
-            mean = np.ma.masked_array(mean, mask=mask)
-            anom = 100 * (cumul - mean)/mean
-            anom = anom.where(~mask, 0.0)
-            anom = anom.where(~miss)
-            data = _get_cumul_spatial_data(
-                cumul, anom.values, params,
-                'Cumulative Rainfall Anomaly',
-                '%', 'anom_cumul'
-            )
-        else:
-            return {
-                'status': -1,
-                'message': 'Unknown variable'
-            }
-    elif params['temporalRes'] == 'monthly':
-        return {'status': -1, 'message': 'Monitoring monthly'}
-    elif params['temporalRes'] == 'seasonal':
-        return {'status': -1, 'message': 'Monitoring seasonal'}
-    else:
-        return {
-            'status': -1,
-            'message': 'Unknown temporal resolution'
-        }
-
+    data = get_climate_monitoring_sp_data(params)
     if data['status'] == -1: return data
+
+    anom = ['anom_dek', 'anom_cumul', 'anom_mon', 'anom_seas']
+    anom_per = ['anom_per_dek', 'anom_per_cumul', 'anom_per_mon', 'anom_per_seas']
+    if params['map_variable'] in anom + anom_per:
+        if params['colorbar']['break_type'] == 'default':
+            vmin = np.nanmin(data['data'])
+            vmax = np.nanmax(data['data'])
+            val_max = np.maximum(np.abs(vmin), np.abs(vmax))
+            if params['map_variable'] in anom_per:
+                if val_max > 500:
+                    val_max = 500
+            breaks = pretty(-val_max, val_max, 15).tolist()
+            px = breaks[1] - breaks[0]
+            bx = np.arange(px / 2, breaks[-1] + px, px)
+            breaks = np.concatenate((-np.flip(bx), bx)).tolist()
+            params['colorbar']['break_cbar'] = breaks
 
     if params['colorbar']['color_type'] == 'preset':
         map_png = create_imagePng(
@@ -98,7 +61,59 @@ def climate_monitoring_sp_data(params):
 
     return {'status': 0, 'data': map_png}
 
-def _create_params_sp_dekad(params):
+def get_climate_monitoring_sp_data(params):
+    if params['map_variable'] in ['rain_dek', 'rain_mon', 'rain_seas']:
+        params = _create_params_sp_raw(params)
+        json_data = download_rawdata(params)
+        data = parse_json_spatial_data(json_data, 'Date')
+    elif params['map_variable'] in [
+        'anom_dek', 'anom_per_dek',
+        'anom_mon', 'anom_per_mon',
+        'anom_seas', 'anom_per_seas'
+    ]:
+        params = _create_params_sp_anom(params)
+        json_data = download_analysis(params)
+        data = parse_json_spatial_data(json_data, 'Date')
+    elif params['map_variable'] in ['spi_dek', 'spi_mon', 'spi_seas']:
+        params = _create_params_sp_spi(params)
+        json_data = download_analysis(params)
+        data = parse_json_spatial_data(json_data, 'Date')
+    elif params['map_variable'] == 'rain_cumul':
+        cumul, _ = _get_cumul_zarr_data(params)
+        data = _get_cumul_spatial_data(
+            cumul, cumul.values, params,
+            'Cumulative Rainfall',
+            'mm', 'rain_cumul'
+        )
+    elif params['map_variable'] == 'anom_cumul':
+        cumul, mean = _get_cumul_zarr_data(params)
+        data = _get_cumul_spatial_data(
+            cumul, (cumul - mean).values, params,
+            'Cumulative Rainfall Anomaly',
+            'mm', 'anom_cumul'
+        )
+    elif params['map_variable'] == 'anom_per_cumul':
+        cumul, mean = _get_cumul_zarr_data(params)
+        miss = cumul.isnull()
+        mask = mean < 10e-5
+        mean = np.ma.masked_array(mean, mask=mask)
+        anom = 100 * (cumul - mean)/mean
+        anom = anom.where(~mask, 0.0)
+        anom = anom.where(~miss)
+        data = _get_cumul_spatial_data(
+            cumul, anom.values, params,
+            'Cumulative Rainfall Anomaly',
+            '%', 'anom_cumul'
+        )
+    else:
+        return {
+            'status': -1,
+            'message': 'Unknown variable'
+        }
+
+    return data
+
+def _create_params_sp_raw(params):
     params['variable'] = params['variable'][0]
     pars = {
         'geomExtract': 'original',
@@ -110,7 +125,7 @@ def _create_params_sp_dekad(params):
     }
     return pars | params
 
-def _create_params_sp_dkanom(params):
+def _create_params_sp_anom(params):
     params['variable'] = params['variable'][0]
     pars = {
         'startYear': 1991,
@@ -130,10 +145,9 @@ def _create_params_sp_dkanom(params):
     }
     return pars | params
 
-def _create_params_spi_dek(params):
+def _create_params_sp_spi(params):
     params['variable'] = params['variable'][0]
     pars = {
-        'analysis': 'spi',
         'geomExtract': 'original',
         'outFormat': 'JSON-Format',
         'gridded': True,

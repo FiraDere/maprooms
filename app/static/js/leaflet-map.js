@@ -1456,6 +1456,46 @@ function colorbarSettings(json) {
     });
 }
 
+function colorbarSetDefault(colorbar, colors = null, breaks = null) {
+    if (colors === null) {
+        if (colorbar.color_type !== 'user') {
+            colorbar.color_type = 'preset';
+            colorbar.color_cbar = 'tim_colors';
+            $('#map-colorbar-colors').val('preset');
+            $('#colorbar-color-preset-select').val('tim_colors');
+            $('#colorbar-color-user-text').val('');
+        }
+    } else {
+        if (Array.isArray(colors)) {
+            colorbar.color_type = 'user';
+            colorbar.color_cbar = colors;
+            $('#map-colorbar-colors').val('user');
+            $('#colorbar-color-preset-select').val('tim_colors');
+            $('#colorbar-color-user-text').val(colors.join(', '));
+        } else {
+            colorbar.color_type = 'preset';
+            colorbar.color_cbar = colors;
+            $('#map-colorbar-colors').val('preset');
+            $('#colorbar-color-preset-select').val(colors);
+            $('#colorbar-color-user-text').val('');
+        }
+    }
+
+    if (breaks === null) {
+        colorbar.break_type = 'default';
+        colorbar.break_cbar = null;
+        $('#map-colorbar-breaks').val('default');
+        $('#colorbar-breaks-user-text').val('');
+    } else {
+        colorbar.break_type = 'user';
+        colorbar.break_cbar = breaks;
+        $('#map-colorbar-breaks').val('user');
+        $('#colorbar-breaks-user-text').val(breaks.join(', '));
+    }
+
+    return colorbar;
+}
+
 function colorbarGetData() {
     const ctype = $('#map-colorbar-colors').val();
     if (ctype === 'preset') {

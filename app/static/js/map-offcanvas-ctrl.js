@@ -540,24 +540,33 @@ function setDecisionSupportVisibilityProba(tempRes, variable) {
 //////////////
 
 function setOffCanvasMapControlMonitoring(tempRes) {
+    refreshSpatialAverage(tempRes);
     if (tempRes === 'dekadal') {
-        refreshSpatialAverage(tempRes);
-
         $(`#${tempRes}-map-variable`)
             .off(`change.monitDekadal`)
             .on(`change.monitDekadal`, function() {
-                setMonitoringDekadalCalendar(tempRes, $(this).val());
-                setMonitoringDekadVisibility(tempRes, $(this).val());
+                setMonitoringVisibilityDekadal(tempRes, $(this).val());
+                setMonitoringCalendar(tempRes, $(this).val());
             });
         $(`#${tempRes}-map-variable`).trigger('change');
     } else if (tempRes === 'monthly') {
-        // monthly
+        $(`#${tempRes}-map-variable`)
+            .off(`change.monitMonthly`)
+            .on(`change.monitMonthly`, function() {
+                setMonitoringCalendar(tempRes, $(this).val());
+            });
+        $(`#${tempRes}-map-variable`).trigger('change');
     } else {
-        // seasonal
+        $(`#${tempRes}-map-variable`)
+            .off(`change.monitSeasnal`)
+            .on(`change.monitSeasonal`, function() {
+                setMonitoringSeasonal(tempRes, $(this).val());
+            });
     }
+    $(`#${tempRes}-map-variable`).trigger('change');
 }
 
-function setMonitoringDekadVisibility(tempRes, variable) {
+function setMonitoringVisibilityDekadal(tempRes, variable) {
     if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(variable)) {
         setVisibility(
             [`${tempRes}-cumul-since-div`], []
@@ -571,7 +580,58 @@ function setMonitoringDekadVisibility(tempRes, variable) {
     }
 }
 
-function setMonitoringDekadalCalendar(tempRes, variable) {
+function setMonitoringSeasonal(tempRes, variable) {
+    if (variable === 'spi_seas') {
+        setVisibility(
+            [`${tempRes}-time-scale-div`],
+            [`${tempRes}-map-date-div`]
+        );
+
+        for (let l = 2; l <= 12; l++) {
+            $(`#${tempRes}-spi-time-scale`).append(
+                $('<option>').text(l).val(l)
+            );
+        }
+        $(`#${tempRes}-spi-time-scale`).val(SEASON_DEF.months.length);
+    } else {
+        setVisibility(
+            [`${tempRes}-map-date-div`],
+            [`${tempRes}-time-scale-div`]
+        );
+
+        temp_cov = getTempCoverageCalendar(
+            DATA_SET.use, tempRes, variable
+        );
+        const mon = -1 * SEASON_DEF.months.length + 1;
+        const disp_d = addDateMonths(temp_cov.end, mon);
+        const dispDate = formatDateToString(disp_d);
+        setMonitoringCalendar(tempRes, variable, dispDate);
+
+        setAnalysisSeasonLengthMap(tempRes);
+        adjustSelect2Height(`${tempRes}-map-date-length`, true);
+
+        $(`#${tempRes}-map-date-length`)
+            .off(`change.monitSeasonLength`)
+            .on(`change.monitSeasonLength`, function() {
+                setAnalysisSeasonMonths(tempRes, 'rawdata');
+            });
+        $(`#${tempRes}-map-date-length`).trigger('change');
+    }
+}
+
+function setMonitoringCalendar(tempRes, variable, dispDate = null) {
+    setDateCalendar(
+        `${tempRes}-map-date`,
+        `${tempRes}-map-variable`,
+        DATA_SET.use,
+        tempRes,
+        dispDate = dispDate,
+        mapNavigation = true,
+        dispYear = false,
+        isStart = null,
+        ensoData = false
+    );
+
     if (['rain_cumul', 'anom_cumul', 'anom_per_cumul'].includes(variable)) {
         const date_disp = getStartDekadCumul(tempRes, variable);
         setDateCalendar(
@@ -586,16 +646,4 @@ function setMonitoringDekadalCalendar(tempRes, variable) {
             ensoData = false
         );
     }
-
-    setDateCalendar(
-        `${tempRes}-map-date`,
-        `${tempRes}-map-variable`,
-        DATA_SET.use,
-        tempRes,
-        dispDate = null,
-        mapNavigation = true,
-        dispYear = false,
-        isStart = null,
-        ensoData = false
-    );
 }

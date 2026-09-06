@@ -39,6 +39,28 @@ COLORS_MAPROOM['precipitation_2'] = {
     'ext': ['#FFFFFF00', '#7E6AB1'],
 }
 
+COLORS_MAPROOM['precipitation_3'] = {
+    'colors': [
+        '#FFFFFF',
+        '#F0F6F7',
+        '#C0ECF2',
+        '#81BBFC',
+        '#5A40FB',
+        '#25812B',
+        '#29B746',
+        '#7BDE6A',
+        '#C1F7A2',
+        '#EEFCA0',
+        '#F5EAD4',
+        '#FAD2A6',
+        '#F5A177',
+        '#EE7C7B',
+        '#D65159',
+        '#A93339',
+    ],
+    'ext': ['#FFFFFF', '#5C080D'],
+}
+
 COLORS_MAPROOM['tim_colors'] = {
     'colors': [
         '#00008F',
@@ -145,16 +167,86 @@ COLORS_MAPROOM['spi_colors'] = {
     'ext': ['#420305', '#033d1f'],
 }
 
-COLORS_MAPROOM['redwhiteblue_colors'] = {
+COLORS_MAPROOM['anomalies_1'] = {
     'colors': [
         '#8B2323',
         '#BD5B1C',
         '#F28E43',
         '#FCE9DA',
+        '#FFFFFF',
         '#EBF3DE',
         '#BACCE4',
         '#608CC4',
         '#3B638F',
     ],
     'ext': ['#8B2323', '#3B638F'],
+}
+
+COLORS_MAPROOM['anomalies_2'] = {
+    'colors': [
+        '#6b0303',
+        '#9c0000',
+        '#d60000',
+        '#f70000',
+        '#ff2e2e',
+        '#ff5c5c',
+        '#ff8a8a',
+        '#ffb8b8',
+        '#ffe6e6',
+        '#ffffff',
+        '#e6e6ff',
+        '#b8b8ff',
+        '#8a8aff',
+        '#5c5cff',
+        '#2e2eff',
+        '#0000f7',
+        '#0000d6',
+        '#00009c',
+        '#00006b',
+    ],
+    'ext': ['#6b0303', '#00006b'],
+}
+
+COLORS_MAPROOM['anomalies_3'] = {
+    'colors': [
+        '#a1786c',
+        '#bc8e7c',
+        '#cd9a88',
+        '#d8a99a',
+        '#e2bcae',
+        '#ebcec2',
+        '#f1ded5',
+        '#f5ede8',
+        '#f7f4f2',
+        '#ffffff',
+        '#e4f5e5',
+        '#b0e0b3',
+        '#8cd091',
+        '#60bf6d',
+        '#34ab4c',
+        '#1d9536',
+        '#0e8023',
+        '#046b14',
+        '#00570b'
+    ],
+    'ext': ['#704f46', '#004505'],
+}
+
+COLORS_MAPROOM['anomalies_4'] = {
+    'colors': [
+        '#a0522d',
+        '#bd8565',
+        '#dca98b',
+        '#ebc1a7',
+        '#f4d2bd',
+        '#fde2d2',
+        '#ffffff',
+        '#e0f3f3',
+        '#c0e6e6',
+        '#a0d9d9',
+        '#80cccc',
+        '#60bfbf',
+        '#40b2b2',
+    ],
+    'ext': ['#a0522d', '#40b2b2'],
 }

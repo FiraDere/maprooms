@@ -2,7 +2,14 @@
 {% block title %} {{metInfo.pageTitle}} {% endblock %}
 {% block head %}
 {{ super() }}
-<!-- <style> </style> -->
+<style>
+    .card-description {
+        height: 90vh;
+    }
+    .card-description-tab {
+        max-height: 78vh;
+    }
+</style>
 {% endblock %}
 {% block content %}
 <!--  -->
@@ -16,22 +23,19 @@
                 <div class="col-sm-12 col-map-container">
                     <div id="div-map-container" class="div-map-container">
                         {% call fmacros.create_map_control(pageText, urlArgs) %}
-                        <div>Test</div>
+                        {{ fmacrosMap.create_map_control_monitoring("seasonal", pageText) }}
                         {% endcall %}
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row justify-content-center">
-        <div class="col-sm-4">
-            {{ fmacros.create_card_charts("div-chart-raw", pageText) }}
-        </div>
-        <div class="col-sm-4">
-            {{ fmacros.create_card_charts("div-chart-clim", pageText) }}
-        </div>
-        <div class="col-sm-4">
-            {{ fmacros.create_card_charts("div-chart-anom", pageText) }}
+            <div class="row justify-content-center">
+                <div class="col-sm-6">
+                    {{ fmacros.create_card_charts("div-chart-raw", pageText) }}
+                </div>
+                <div class="col-sm-6">
+                    {{ fmacros.create_card_charts("div-chart-anom", pageText) }}
+                </div>
+            </div>
         </div>
     </div>
     {{ fmacros.create_modal_matplotlib(pageText) }}

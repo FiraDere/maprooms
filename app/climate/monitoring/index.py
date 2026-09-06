@@ -11,6 +11,7 @@ from threading import Lock
 
 from .scripts.monitoring_sp import climate_monitoring_sp_data
 from .scripts.monitoring_ts import climate_monitoring_ts_cumul
+from app.dst_api.scripts import check_spei_cache_status
 
 climate_monitoring = Blueprint(
     'climate_monitoring',
@@ -33,6 +34,15 @@ def before_request():
             dataUser = session['data']
         else:
             dataUser = {'uid': -1}
+
+@climate_monitoring.route('/monitoring_spei_cache_status', methods=['POST'])
+def monitoring_spei_cache_status():
+    params = request.get_json()
+    try:
+        status = check_spei_cache_status(params)
+        return json.dumps(status)
+    except Exception as e:
+        return json.dumps({'status': -1, 'message': str(e)})
 
 @climate_monitoring.route('/climate_monitoring_map', methods=['POST'])
 def climate_monitoring_map():

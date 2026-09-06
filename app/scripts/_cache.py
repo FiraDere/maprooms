@@ -43,25 +43,39 @@ def hash_pamars_telecon_map(params):
 
 def hash_pamars_anom(params):
     pars_keys = [
-         'analysis', 'anomaly', 'Date', 'startDate', 'endDate',
-         'Year', 'seasStart', 'seasLength', 'dataset', 'temporalRes',
-         'variable', 'climFunction', 'fullYear', 'fullYearTS',
-         'climDate', 'daysWindow', 'startYear', 'endYear', 'minYear',
-         'geomExtract', 'pointsSource', 'pointsFile', 'pointsList',
-         'padLon', 'padLat', 'minLon', 'maxLon', 'minLat', 'maxLat',
-         'shpSource', 'shpFile', 'shpField', 'Poly', 'allPolygons',
-         'geojsonSource', 'geojsonFile', 'geojsonData', 'geojsonField',
-         'spatialAvg', 'dailyAnalysis', 'minFrac', 'seasParams',
-         'startMonth', 'startDay', 'endMonth', 'endDay', 'defThres',
-         'defSpell', 'defTempBase', 'seasStats'
+        'analysis', 'anomaly', 'Date', 'startDate', 'endDate',
+        'Year', 'seasStart', 'seasLength', 'dataset', 'temporalRes',
+        'variable', 'climFunction', 'fullYear', 'fullYearTS',
+        'climDate', 'daysWindow', 'startYear', 'endYear', 'minYear',
+        'geomExtract', 'pointsSource', 'pointsFile', 'pointsList',
+        'padLon', 'padLat', 'minLon', 'maxLon', 'minLat', 'maxLat',
+        'shpSource', 'shpFile', 'shpField', 'Poly', 'allPolygons',
+        'geojsonSource', 'geojsonFile', 'geojsonData', 'geojsonField',
+        'spatialAvg', 'dailyAnalysis', 'minFrac', 'seasParams',
+        'startMonth', 'startDay', 'endMonth', 'endDay', 'defThres',
+        'defSpell', 'defTempBase', 'seasStats'
+    ]
+    pars = {k: str(v) for k, v in params.items() if k in pars_keys}
+    return _hash_params(pars)
+
+def hash_pamars_spei(params):
+    pars_keys = [
+        'analysis', 'distribution', 'timeScale', 'timeRes', 'dataset',
+        'temporalRes', 'variable', 'Date', 'startDate', 'endDate',
+        'Year', 'seasStart', 'seasLength',
+        'geomExtract', 'pointsSource', 'pointsFile', 'pointsList',
+        'padLon', 'padLat', 'minLon', 'maxLon', 'minLat', 'maxLat',
+        'shpSource', 'shpFile', 'shpField', 'Poly', 'allPolygons',
+        'geojsonSource', 'geojsonFile', 'geojsonData',
+        'geojsonField', 'spatialAvg', 'minFrac'
     ]
     pars = {k: str(v) for k, v in params.items() if k in pars_keys}
     return _hash_params(pars)
 
 def hash_distr_pamars_spei(params):
     pars_keys = [
-         'analysis', 'distribution', 'timeScale',
-         'dataset', 'temporalRes', 'variable'
+        'analysis', 'distribution', 'timeScale',
+        'dataset', 'timeRes', 'temporalRes', 'variable'
     ]
     pars = {k: str(v) for k, v in params.items() if k in pars_keys}
     return _hash_params(pars)

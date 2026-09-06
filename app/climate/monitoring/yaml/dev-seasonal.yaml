@@ -12,9 +12,19 @@ description:
         Cette interface permet à l'utilisateur de visualiser les climatologies et les anomalies de précipitations et températures. Les climatologies sont définies par la période 1991-2020.
         </p>
 
-dataset:
-    use: ALL
-    variables:
-        precip: [precip]
-        tmax: [tmax]
-        tmin: [tmin]
+opt_dates:
+    label:
+        en: Date
+        fr: Date
+    start:
+        en: Start month
+        fr: Mois de début
+    length:
+        en: Length
+        fr: Longueur
+    time_scale:
+        en: Time scales
+        fr: Échelles de temps
+    months:
+        en: months
+        fr: mois

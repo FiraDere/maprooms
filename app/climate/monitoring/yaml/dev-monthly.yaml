@@ -13,8 +13,35 @@ description:
         </p>
 
 dataset:
-    use: ALL
+    use: MON
     variables:
-        precip: [precip]
-        tmax: [tmax]
-        tmin: [tmin]
+        rain_mon: [precip]
+        anom_mon: [precip]
+        anom_per_mon: [precip]
+        spi_mon: [precip]
+
+variables:
+    label:
+        en: Variable
+        fr: Variable
+    select:
+        rain_mon:
+            en: Monthly Rainfall Total
+            fr: Cumul de Précipitations Mensuelles
+        anom_mon:
+            en: Monthly Rainfall Anomaly
+            fr: Anomalie de Précipitations Mensuelles
+        anom_per_mon:
+            en: Monthly Rainfall Anomaly in Percent
+            fr: Anomalie de Précipitations Mensuelles en Pourcentage
+        spi_mon:
+            en: Standard Precipitation Index (SPI)
+            fr: Indice de Précipitations Standardisé (SPI)
+
+opt_dates:
+    label:
+        en: Date
+        fr: Date
+    month:
+        en: Month of
+        fr: Mois du

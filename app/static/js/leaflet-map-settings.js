@@ -506,14 +506,40 @@ function queryParamsClimateMonitoringMap(time_res) {
                 query.anomaly = 'percentage';
             }
             if (query.map_variable === 'spi_dek') {
+                query.analysis = 'spi';
                 query.distribution = 'gamma';
                 query.timeScale = 1;
             }
         }
     } else if (time_res === 'monthly') {
-        // 
+        query.Date = $(`#${time_res}-map-date-calendar`).val();
+        if (query.map_variable === 'anom_mon') {
+            query.anomaly = 'difference';
+        }
+        if (query.map_variable === 'anom_per_mon') {
+            query.anomaly = 'percentage';
+        }
+        if (query.map_variable === 'spi_mon') {
+            query.analysis = 'spi';
+            query.distribution = 'gamma';
+            query.timeScale = 1;
+        }
     } else if (time_res === 'seasonal') {
-        // 
+        const date = $(`#${time_res}-map-date-calendar`).val();
+        query.seasLength = parseInt($(`#${time_res}-map-date-length`).val(), 10);
+        query.Date = formatSeasonDate(date, query.seasLength);
+        if (query.map_variable === 'anom_seas') {
+            query.anomaly = 'difference';
+        }
+        if (query.map_variable === 'anom_per_seas') {
+            query.anomaly = 'percentage';
+        }
+        if (query.map_variable === 'spi_seas') {
+            query.analysis = 'spi';
+            query.distribution = 'gamma';
+            query.timeScale = parseInt($(`#${time_res}-spi-time-scale`).val(), 10);
+            query.timeRes = 'monthly';
+        }
     } else {
         return false;
     }
@@ -522,22 +548,37 @@ function queryParamsClimateMonitoringMap(time_res) {
     if (!colorbar) {
         return false;
     }
-    query.colorbar = colorbar;
 
-    if (query.map_variable === 'spi_dek') {
-        if (colorbar.break_type == 'default') {
-            query.colorbar.break_type = 'user';
-            query.colorbar.break_cbar = [-2, -1.5, -1, 1, 1.5, 2];
-        }
-        if (colorbar.color_type == 'preset') {
-            query.colorbar.color_cbar = 'spi_colors';
-            $('#colorbar-color-preset-select').val('spi_colors');
-            this_colors = 'spi_colors';
-        }
+    if (
+        ['spi_dek', 'spi_mon', 'spi_seas']
+        .includes(query.map_variable)
+    ) {
+        query.colorbar = colorbarSetDefault(
+            colorbar, 'spi_colors', [-2, -1.5, -1, 1, 1.5, 2]
+        );
+    } else if (
+        ['rain_dek', 'rain_cumul', 'rain_mon', 'rain_seas']
+        .includes(query.map_variable)
+    ) {
+        query.colorbar = colorbarSetDefault(
+            colorbar, 'precipitation_3'
+        );
+    } else if (
+        ['anom_dek', 'anom_cumul', 'anom_mon', 'anom_seas']
+        .includes(query.map_variable)
+    ) {
+        query.colorbar = colorbarSetDefault(
+            colorbar, 'anomalies_4'
+        );
+    } else if (
+        ['anom_per_dek', 'anom_per_cumul', 'anom_per_mon', 'anom_per_seas']
+        .includes(query.map_variable)
+    ) {
+        query.colorbar = colorbarSetDefault(
+            colorbar, 'anomalies_3'
+        );
     } else {
-        if (colorbar.color_type == 'preset') {
-            $('#colorbar-color-preset-select').val('tim_colors');
-        }
+        query.colorbar = colorbarSetDefault(colorbar);
     }
 
     return query;
@@ -555,12 +596,24 @@ function displayClimateMonitoringMap(time_res, options, map) {
         'climate_monitoring_map'
     );
 
+    let cacheStatusEndpoint = null;
+    if (
+        ['spi_dek', 'spi_mon', 'spi_seas']
+        .includes(query.map_variable)
+    ) {
+        cacheStatusEndpoint = createEndpoint(
+            'climate_monitoring',
+            'monitoring_spei_cache_status'
+        );
+    }
+
     const request = ajaxLeafletMap(
         endpoint,
         query,
         displayRasterImage,
         options,
-        map
+        map,
+        cacheStatusEndpoint
     );
 
     updateAnalysisMapDate(time_res, query, map);

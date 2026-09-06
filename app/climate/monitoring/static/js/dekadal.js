@@ -50,11 +50,11 @@ $(document).ready(function() {
     // display preview time series on click on map, or select polygon
     mapClickLayersSpatialAverage(preview_monitoring_display_charts, 'dekadal', map);
 
-    // $('#select-country-region').on('change', () => {
-    //     mapClickLayersSpatialAverage(preview_monitoring_display_charts, 'dekadal', map);
-    // });
+    $('#select-country-region').on('change', () => {
+        mapClickLayersSpatialAverage(preview_monitoring_display_charts, 'dekadal', map);
+    });
 
-    // $('#select-region-name').on('change', () => {
-    //     mapClickLayersSpatialAverage(preview_monitoring_display_charts, 'dekadal', map);
-    // });
+    $('#select-region-name').on('change', () => {
+        mapClickLayersSpatialAverage(preview_monitoring_display_charts, 'dekadal', map);
+    });
 });

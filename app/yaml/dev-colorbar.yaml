@@ -1,7 +1,8 @@
 ## preset colorbar list
 colorbar_color_list: [
-                tim_colors, precipitation_1, precipitation_2,
-                tercile_enso, spi_colors, redwhiteblue_colors,
+                tim_colors, tercile_enso, spi_colors,
+                precipitation_1, precipitation_2, precipitation_3,
+                anomalies_1, anomalies_2, anomalies_3,
                 'rainbow', 'turbo', 'viridis', 'inferno',
                 'jet', 'plasma', 'magma', 'plasma',
                 'hsv', 'hot', 'cool', 'spring', 'summer',

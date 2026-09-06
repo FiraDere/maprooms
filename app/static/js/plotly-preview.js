@@ -33,6 +33,11 @@ function preview_monitoring_display_charts(tempRes) {
     preview_analysis_charts_anomaly(tempRes, 'div-chart-anom');
 }
 
+function preview_monitoring_display_charts_1(tempRes) {
+    preview_analysis_charts_rawdata(tempRes, 'div-chart-raw');
+    preview_analysis_charts_anomaly(tempRes, 'div-chart-anom');
+}
+
 ///////////////////
 
 function analysis_query_format_date(date, temp_res) {
@@ -80,7 +85,6 @@ function preview_analysis_query_anomaly(tempRes) {
     query.dataset = DATA_SET.use;
     query.map_variable = $(`#${tempRes}-map-variable`).val();
     if (URL_ARGS.component === 'monitoring') {
-        // for dekadal only now, change for other tempRes
         query.variable = DATA_SET.variables[query.map_variable][0];
     } else {
         query.variable = query.map_variable;
@@ -102,7 +106,12 @@ function preview_analysis_query_anomaly(tempRes) {
             query.seasStart = parseInt(seas_start.slice(5, 7), 10);
         }
         query.seasLength = parseInt($(`#${tstepId}-length`).val(), 10);
-        query.fullYearTS = true;
+        if (URL_ARGS.component === 'monitoring') {
+            query.fullYearTS = false;
+            ts_len = 30;
+        } else {
+            query.fullYearTS = true;
+        }
         query.dailyAnalysis = false;
     }
 
@@ -263,15 +272,24 @@ function preview_analysis_query_rawdata(tempRes) {
     query.dataset = DATA_SET.use;
     query.map_variable = $(`#${tempRes}-map-variable`).val();
     if (URL_ARGS.component === 'monitoring') {
-        // for dekadal only now, change for other tempRes
         query.variable = DATA_SET.variables[query.map_variable][0];
     } else {
         query.variable = query.map_variable;
     }
 
+    let trange = 5;
+    if (tempRes === 'seasonal') {
+        const seas_start = $(`#${tempRes}-map-date-calendar`).val();
+        query.seasStart = parseInt(seas_start.slice(5, 7), 10);
+        query.seasLength = parseInt($(`#${tempRes}-map-date-length`).val(), 10);
+        query.fullYearTS = false;
+        trange = 30;
+    }
+
     const dates = preview_analysis_query_temporal(
-        query.dataset, tempRes, query.map_variable, 5
+        query.dataset, tempRes, query.map_variable, trange
     );
+
 
     return Object.assign({}, query, dates);
 }
@@ -340,7 +358,7 @@ function preview_analysis_display_rawdata(json, container) {
             yaxis: {
                 showgrid: true,
                 griddash: 'dot',
-                tickfont: { color: '#fc03fc' }
+                // tickfont: { color: '#fc03fc' }
             },
             shapes: [{
                 action: 'change-color',
@@ -744,7 +762,12 @@ function preview_analysis_query_season(tempRes) {
     query.chartType = 'season';
     query.temporalRes = tempRes;
     query.dataset = DATA_SET.use;
-    query.variable = $(`#${tempRes}-map-variable`).val();
+    query.map_variable = $(`#${tempRes}-map-variable`).val();
+    if (URL_ARGS.component === 'monitoring') {
+        query.variable = DATA_SET.variables[query.map_variable][0];
+    } else {
+        query.variable = query.map_variable;
+    }
 
     const tstepId = `${tempRes}-map-date`;
     if (tempRes === 'seasonal') {
@@ -780,7 +803,7 @@ function preview_analysis_query_season(tempRes) {
     }
 
     const dates = preview_analysis_query_temporal(
-        query.dataset, tempRes, query.variable, 30
+        query.dataset, tempRes, query.map_variable, 30
     );
 
     // check if seasParams has not set yet
